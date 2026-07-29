@@ -240,80 +240,103 @@ export async function generateChallans() {
     include: { route: true }
   });
 
-  const nextMonth = new Date();
-  nextMonth.setMonth(nextMonth.getMonth() + 1);
-  const monthName = nextMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
-  const dueDate = new Date();
-  dueDate.setDate(dueDate.getDate() + 15); // Due in 15 days
+  // Use the current month (not next month) for more intuitive behavior
+  const now = new Date();
+  const monthName = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+  
+  // Due date: 15th of next month
+  const dueDate = new Date(now.getFullYear(), now.getMonth() + 1, 15);
+
+  let created = 0;
+  let skipped = 0;
 
   for (const student of students) {
     if (!student.route) continue;
-    
-    // Check if challan already exists for this month
+
+    // Duplicate check: skip if challan already exists for this student + month
     const existing = await prisma.challan.findFirst({
       where: { studentId: student.id, month: monthName }
     });
 
-    if (!existing) {
-      // Calculate Arrears
-      const pendingChallans = await prisma.challan.findMany({
-        where: { 
-          studentId: student.id, 
-          status: { in: ["UNPAID", "PARTIAL"] } 
-        },
-        include: { payments: true }
-      });
+    if (existing) {
+      skipped++;
+      continue;
+    }
 
-      let calculatedArrears = 0;
-      for (const pc of pendingChallans) {
-        const totalPaid = pc.payments.reduce((sum, p) => sum + p.amount, 0);
-        const totalDue = pc.amount + pc.arrears;
-        calculatedArrears += (totalDue - totalPaid);
-      }
+    // Calculate arrears from ALL previous unpaid/partial challans
+    const pendingChallans = await prisma.challan.findMany({
+      where: {
+        studentId: student.id,
+        status: { in: ["UNPAID", "PARTIAL"] },
+      },
+      include: { payments: true }
+    });
 
-      await prisma.challan.create({
+    let calculatedArrears = 0;
+    for (const pc of pendingChallans) {
+      const totalPaid = pc.payments.reduce((sum, p) => sum + p.amount, 0);
+      const totalDue = pc.amount + pc.arrears;
+      calculatedArrears += (totalDue - totalPaid);
+    }
+
+    // Use a transaction to create the challan atomically
+    await prisma.$transaction(async (tx) => {
+      await tx.challan.create({
         data: {
           studentId: student.id,
-          amount: student.route.feeAmount,
+          amount: student.route!.feeAmount,
           arrears: calculatedArrears,
           month: monthName,
           dueDate: dueDate,
           status: "UNPAID"
         }
       });
-    }
+    });
+
+    created++;
   }
 
   revalidatePath("/");
   revalidatePath("/finance");
+
+  return { created, skipped, month: monthName };
 }
 
 export async function receivePayment(challanId: string, amount: number, method: string = "Cash") {
-  const challan = await prisma.challan.findUnique({
-    where: { id: challanId },
-    include: { payments: true }
-  });
+  // Use transaction for atomic payment + status update
+  await prisma.$transaction(async (tx) => {
+    const challan = await tx.challan.findUnique({
+      where: { id: challanId },
+      include: { payments: true }
+    });
 
-  if (!challan) throw new Error("Challan not found");
+    if (!challan) throw new Error("Challan not found");
+    if (challan.status === "PAID") throw new Error("This challan is already fully paid.");
 
-  await prisma.payment.create({
-    data: {
-      studentId: challan.studentId,
-      challanId: challan.id,
-      amount: amount,
-      method: method,
+    const totalPreviouslyPaid = challan.payments.reduce((sum, p) => sum + p.amount, 0);
+    const totalDue = challan.amount + challan.arrears;
+    const remaining = totalDue - totalPreviouslyPaid;
+
+    if (amount > remaining) {
+      throw new Error(`Payment of Rs ${amount} exceeds remaining due of Rs ${remaining}.`);
     }
-  });
 
-  const totalPreviouslyPaid = challan.payments.reduce((sum, p) => sum + p.amount, 0);
-  const totalPaidNow = totalPreviouslyPaid + amount;
-  const totalDue = challan.amount + challan.arrears;
+    await tx.payment.create({
+      data: {
+        studentId: challan.studentId,
+        challanId: challan.id,
+        amount: amount,
+        method: method,
+      }
+    });
 
-  const newStatus = totalPaidNow >= totalDue ? "PAID" : "PARTIAL";
+    const totalPaidNow = totalPreviouslyPaid + amount;
+    const newStatus = totalPaidNow >= totalDue ? "PAID" : "PARTIAL";
 
-  await prisma.challan.update({
-    where: { id: challanId },
-    data: { status: newStatus }
+    await tx.challan.update({
+      where: { id: challanId },
+      data: { status: newStatus }
+    });
   });
 
   revalidatePath("/");

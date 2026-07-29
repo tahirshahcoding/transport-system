@@ -2,9 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { FinanceClient } from "@/components/finance/FinanceClient";
 
 export default async function FinancePage() {
-  const [pendingChallans, payments, collections, pendingAmounts] = await Promise.all([
+  const [allChallans, allPayments, collections, pendingAmounts] = await Promise.all([
     prisma.challan.findMany({
-      where: { status: "UNPAID" },
       include: {
         student: {
           select: {
@@ -15,6 +14,9 @@ export default async function FinancePage() {
             route: { select: { name: true } },
           },
         },
+        payments: {
+          select: { amount: true },
+        },
       },
       orderBy: { id: "desc" },
     }),
@@ -24,18 +26,24 @@ export default async function FinancePage() {
         challan: { select: { month: true } },
       },
       orderBy: { date: "desc" },
-      take: 5,
     }),
     prisma.payment.aggregate({ _sum: { amount: true } }),
-    prisma.challan.aggregate({ _sum: { amount: true }, where: { status: "UNPAID" } }),
+    prisma.challan.aggregate({
+      _sum: { amount: true, arrears: true },
+      where: { status: { in: ["UNPAID", "PARTIAL"] } },
+    }),
   ]);
+
+  // Compute unique months for filter dropdown
+  const uniqueMonths = [...new Set(allChallans.map(c => c.month))];
 
   return (
     <FinanceClient
-      initialChallans={pendingChallans}
-      recentPayments={payments}
+      allChallans={allChallans}
+      allPayments={allPayments}
+      uniqueMonths={uniqueMonths}
       totalCollection={collections._sum.amount || 0}
-      totalPending={pendingAmounts._sum.amount || 0}
+      totalPending={(pendingAmounts._sum.amount || 0) + (pendingAmounts._sum.arrears || 0)}
     />
   );
 }
