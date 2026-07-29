@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
-export async function addStudent(data: { name: string; class: string; routeId?: string; instituteId?: string }) {
+export async function addStudent(data: { name: string; class: string; routeId?: string; instituteId?: string; vehicleId?: string }) {
   // Find or create default institute if none provided
   let instituteId = data.instituteId;
   if (!instituteId) {
@@ -22,6 +22,7 @@ export async function addStudent(data: { name: string; class: string; routeId?: 
       class: data.class,
       instituteId: instituteId,
       routeId: data.routeId || null,
+      vehicleId: data.vehicleId || null,
     }
   });
 
@@ -95,11 +96,12 @@ export async function generateIndividualChallan(studentId: string) {
   revalidatePath("/finance");
 }
 
-export async function addVehicle(data: { registration: string; capacity: number }) {
+export async function addVehicle(data: { registration: string; capacity: number; routeId?: string }) {
   await prisma.vehicle.create({
     data: {
       registrationNumber: data.registration,
       capacity: data.capacity,
+      routeId: data.routeId || null,
     }
   });
 
@@ -108,8 +110,8 @@ export async function addVehicle(data: { registration: string; capacity: number 
 }
 
 export async function deleteVehicle(id: string) {
-  // First nullify any routes attached to this vehicle
-  await prisma.route.updateMany({
+  // First nullify any students attached to this vehicle
+  await prisma.student.updateMany({
     where: { vehicleId: id },
     data: { vehicleId: null }
   });
@@ -134,12 +136,11 @@ export async function addInstitute(data: { name: string }) {
   revalidatePath("/");
 }
 
-export async function addRoute(data: { name: string; fee: number; vehicleId?: string }) {
+export async function addRoute(data: { name: string; fee: number }) {
   await prisma.route.create({
     data: {
       name: data.name,
       feeAmount: data.fee,
-      vehicleId: data.vehicleId || null,
     }
   });
 
@@ -148,10 +149,16 @@ export async function addRoute(data: { name: string; fee: number; vehicleId?: st
 }
 
 export async function deleteRoute(id: string) {
-  // Nullify route in students
-  await prisma.student.updateMany({
+  // Nullify route in vehicles
+  await prisma.vehicle.updateMany({
     where: { routeId: id },
     data: { routeId: null }
+  });
+
+  // Nullify route and vehicle in students
+  await prisma.student.updateMany({
+    where: { routeId: id },
+    data: { routeId: null, vehicleId: null }
   });
 
   await prisma.route.delete({
@@ -169,25 +176,26 @@ export async function seedDatabase() {
     data: { name: "ABC Grammar School" }
   });
 
-  // Create Vehicles
-  const v1 = await prisma.vehicle.create({ data: { registrationNumber: "LES-1234", capacity: 40 } });
-  const v2 = await prisma.vehicle.create({ data: { registrationNumber: "CAG-5678", capacity: 25 } });
-  const v3 = await prisma.vehicle.create({ data: { registrationNumber: "RIS-2345", capacity: 52 } });
+  // Create Routes first
+  const r1 = await prisma.route.create({ data: { name: "Mingora Central", feeAmount: 2500 } });
+  const r2 = await prisma.route.create({ data: { name: "Saidu Sharif", feeAmount: 3000 } });
+  const r3 = await prisma.route.create({ data: { name: "Kabal Road", feeAmount: 3500 } });
 
-  // Create Routes
-  const r1 = await prisma.route.create({ data: { name: "Mingora Central", feeAmount: 2500, vehicleId: v1.id } });
-  const r2 = await prisma.route.create({ data: { name: "Saidu Sharif", feeAmount: 3000, vehicleId: v2.id } });
-  const r3 = await prisma.route.create({ data: { name: "Kabal Road", feeAmount: 3500, vehicleId: v3.id } });
+  // Create Vehicles and attach to routes
+  const v1 = await prisma.vehicle.create({ data: { registrationNumber: "LES-1234", capacity: 40, routeId: r1.id } });
+  const v2 = await prisma.vehicle.create({ data: { registrationNumber: "CAG-5678", capacity: 25, routeId: r2.id } });
+  const v3 = await prisma.vehicle.create({ data: { registrationNumber: "RIS-2345", capacity: 52, routeId: r3.id } });
+  const v4 = await prisma.vehicle.create({ data: { registrationNumber: "BNS-9999", capacity: 15, routeId: r1.id } });
 
   // Create Students
   const students = await Promise.all([
-    prisma.student.create({ data: { name: "Ali Khan", class: "7th", instituteId: institute.id, routeId: r1.id } }),
-    prisma.student.create({ data: { name: "Ahmad Shah", class: "9th", instituteId: institute.id, routeId: r2.id } }),
-    prisma.student.create({ data: { name: "Umar Farooq", class: "10th", instituteId: institute.id, routeId: r1.id } }),
-    prisma.student.create({ data: { name: "Zainab Bibi", class: "5th", instituteId: institute.id, routeId: r2.id } }),
-    prisma.student.create({ data: { name: "Hassan Ali", class: "8th", instituteId: institute.id, routeId: r3.id } }),
-    prisma.student.create({ data: { name: "Sara Khan", class: "6th", instituteId: institute.id, routeId: r1.id } }),
-    prisma.student.create({ data: { name: "Irfan Shah", class: "10th", instituteId: institute.id, routeId: r3.id } }),
+    prisma.student.create({ data: { name: "Ali Khan", class: "7th", instituteId: institute.id, routeId: r1.id, vehicleId: v1.id } }),
+    prisma.student.create({ data: { name: "Ahmad Shah", class: "9th", instituteId: institute.id, routeId: r2.id, vehicleId: v2.id } }),
+    prisma.student.create({ data: { name: "Umar Farooq", class: "10th", instituteId: institute.id, routeId: r1.id, vehicleId: v4.id } }),
+    prisma.student.create({ data: { name: "Zainab Bibi", class: "5th", instituteId: institute.id, routeId: r2.id, vehicleId: v2.id } }),
+    prisma.student.create({ data: { name: "Hassan Ali", class: "8th", instituteId: institute.id, routeId: r3.id, vehicleId: v3.id } }),
+    prisma.student.create({ data: { name: "Sara Khan", class: "6th", instituteId: institute.id, routeId: r1.id, vehicleId: v1.id } }),
+    prisma.student.create({ data: { name: "Irfan Shah", class: "10th", instituteId: institute.id, routeId: r3.id, vehicleId: v3.id } }),
   ]);
 
   // Generate Challans

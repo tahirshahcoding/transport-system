@@ -12,10 +12,11 @@ type Vehicle = {
   id: string;
   registrationNumber: string;
   capacity: number | null;
-  _count: { routes: number };
+  route: { name: string } | null;
+  _count: { students: number };
 };
 
-export function VehiclesClient({ initialVehicles }: { initialVehicles: Vehicle[] }) {
+export function VehiclesClient({ initialVehicles, availableRoutes = [] }: { initialVehicles: Vehicle[], availableRoutes?: { id: string, name: string }[] }) {
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -29,9 +30,10 @@ export function VehiclesClient({ initialVehicles }: { initialVehicles: Vehicle[]
     const formData = new FormData(e.currentTarget);
     const registration = formData.get("registration") as string;
     const capacity = parseInt(formData.get("capacity") as string, 10);
+    const routeId = formData.get("routeId") as string;
 
     startTransition(async () => {
-      await addVehicle({ registration, capacity });
+      await addVehicle({ registration, capacity, routeId: routeId || undefined });
       setIsOpen(false);
     });
   };
@@ -57,6 +59,19 @@ export function VehiclesClient({ initialVehicles }: { initialVehicles: Vehicle[]
               <div className="space-y-2">
                 <Label htmlFor="capacity" className="text-xs font-semibold text-slate-600">Seating Capacity</Label>
                 <Input id="capacity" name="capacity" type="number" placeholder="E.g. 40" required className="rounded-xl bg-slate-50 border-slate-200 h-10" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="routeId" className="text-xs font-semibold text-slate-600">Assign to Route (Optional)</Label>
+                <select 
+                  id="routeId" 
+                  name="routeId" 
+                  className="w-full rounded-xl bg-slate-50 border-slate-200 h-10 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2"
+                >
+                  <option value="">-- No Route Assigned --</option>
+                  {availableRoutes.map(r => (
+                    <option key={r.id} value={r.id}>{r.name}</option>
+                  ))}
+                </select>
               </div>
               <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 rounded-xl h-10" disabled={isPending}>
                 {isPending ? "Adding..." : "Save Vehicle"}
@@ -101,15 +116,15 @@ export function VehiclesClient({ initialVehicles }: { initialVehicles: Vehicle[]
                       {vehicle.registrationNumber}
                     </p>
                     <p className="text-[11px] text-slate-400 mt-0.5">
-                      {vehicle.registrationNumber}
+                      {vehicle.capacity ? `${vehicle.capacity} Seats` : "N/A"} · {vehicle._count.students} Students
                     </p>
                     <p className="text-[11px] text-slate-400">
-                      {vehicle.capacity ? `${vehicle.capacity} Seats` : "N/A"} · {vehicle._count.routes} Route(s)
+                      Route: <span className="font-semibold text-slate-600">{vehicle.route?.name || "None"}</span>
                     </p>
                   </div>
                   <button 
                     onClick={() => {
-                      if (confirm("Are you sure you want to delete this vehicle? Any attached routes will be unassigned.")) {
+                      if (confirm("Are you sure you want to delete this vehicle? Any students assigned to it will have their vehicle set to None.")) {
                         startTransition(() => deleteVehicle(vehicle.id));
                       }
                     }}

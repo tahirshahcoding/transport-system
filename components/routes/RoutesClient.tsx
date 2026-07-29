@@ -12,11 +12,10 @@ type Route = {
   id: string;
   name: string;
   feeAmount: number;
-  vehicle: { registrationNumber: string } | null;
-  _count: { students: number };
+  _count: { students: number, vehicles: number };
 };
 
-export function RoutesClient({ initialRoutes, availableVehicles }: { initialRoutes: Route[], availableVehicles: { id: string, registrationNumber: string }[] }) {
+export function RoutesClient({ initialRoutes }: { initialRoutes: Route[] }) {
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -30,10 +29,9 @@ export function RoutesClient({ initialRoutes, availableVehicles }: { initialRout
     const formData = new FormData(e.currentTarget);
     const name = formData.get("name") as string;
     const fee = parseInt(formData.get("fee") as string, 10);
-    const vehicleId = formData.get("vehicleId") as string;
 
     startTransition(async () => {
-      await addRoute({ name, fee, vehicleId: vehicleId || undefined });
+      await addRoute({ name, fee });
       setIsOpen(false);
     });
   };
@@ -59,19 +57,6 @@ export function RoutesClient({ initialRoutes, availableVehicles }: { initialRout
               <div className="space-y-2">
                 <Label htmlFor="fee" className="text-xs font-semibold text-slate-600">Monthly Fee (Rs)</Label>
                 <Input id="fee" name="fee" type="number" placeholder="E.g. 2500" required className="rounded-xl bg-slate-50 border-slate-200 h-10" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="vehicleId" className="text-xs font-semibold text-slate-600">Assign Vehicle (Optional)</Label>
-                <select 
-                  id="vehicleId" 
-                  name="vehicleId" 
-                  className="w-full rounded-xl bg-slate-50 border-slate-200 h-10 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2"
-                >
-                  <option value="">-- No Vehicle Assigned --</option>
-                  {availableVehicles.map(v => (
-                    <option key={v.id} value={v.id}>{v.registrationNumber}</option>
-                  ))}
-                </select>
               </div>
               <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 rounded-xl h-10" disabled={isPending}>
                 {isPending ? "Adding..." : "Save Route"}
@@ -117,7 +102,7 @@ export function RoutesClient({ initialRoutes, availableVehicles }: { initialRout
                       {route._count.students} Students
                     </p>
                     <p className="text-[11px] text-slate-400">
-                      Vehicle: {route.vehicle?.registrationNumber || "None"}
+                      {route._count.vehicles} Vehicle(s)
                     </p>
                   </div>
                   <button 

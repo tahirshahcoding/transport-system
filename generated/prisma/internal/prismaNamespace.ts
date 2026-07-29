@@ -1349,7 +1349,8 @@ export type InstituteScalarFieldEnum = (typeof InstituteScalarFieldEnum)[keyof t
 export const VehicleScalarFieldEnum = {
   id: 'id',
   registrationNumber: 'registrationNumber',
-  capacity: 'capacity'
+  capacity: 'capacity',
+  routeId: 'routeId'
 } as const
 
 export type VehicleScalarFieldEnum = (typeof VehicleScalarFieldEnum)[keyof typeof VehicleScalarFieldEnum]
@@ -1358,8 +1359,7 @@ export type VehicleScalarFieldEnum = (typeof VehicleScalarFieldEnum)[keyof typeo
 export const RouteScalarFieldEnum = {
   id: 'id',
   name: 'name',
-  feeAmount: 'feeAmount',
-  vehicleId: 'vehicleId'
+  feeAmount: 'feeAmount'
 } as const
 
 export type RouteScalarFieldEnum = (typeof RouteScalarFieldEnum)[keyof typeof RouteScalarFieldEnum]
@@ -1371,6 +1371,7 @@ export const StudentScalarFieldEnum = {
   class: 'class',
   instituteId: 'instituteId',
   routeId: 'routeId',
+  vehicleId: 'vehicleId',
   status: 'status'
 } as const
 
