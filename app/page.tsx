@@ -11,6 +11,7 @@ export default async function Dashboard() {
     collections,
     pendingAmounts,
     recentChallans,
+    pendingStudents,
   ] = await Promise.all([
     prisma.student.count(),
     prisma.vehicle.count(),
@@ -23,13 +24,14 @@ export default async function Dashboard() {
       orderBy: { id: "desc" },
       take: 3,
     }),
+    prisma.challan.groupBy({ by: ["studentId"], where: { status: "UNPAID" } }),
   ]);
 
   const totalCollected = collections._sum.amount || 0;
   const totalPending = pendingAmounts._sum.amount || 0;
   const totalInvoiced = totalCollected + totalPending;
   const pendingPercentage = totalInvoiced > 0 ? Math.round((totalPending / totalInvoiced) * 100) : 0;
-  const pendingStudentCount = await prisma.challan.groupBy({ by: ["studentId"], where: { status: "UNPAID" } }).then(r => r.length);
+  const pendingStudentCount = pendingStudents.length;
 
   return (
     <div className="px-4 pt-4 pb-4 max-w-lg mx-auto md:max-w-5xl md:px-8 md:pt-8">

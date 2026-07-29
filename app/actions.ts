@@ -328,71 +328,84 @@ export async function seedDatabase() {
 }
 
 export async function generateChallans() {
+  const now = new Date();
+  const monthName = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+  const dueDate = new Date(now.getFullYear(), now.getMonth() + 1, 15);
+
+  // 1. Fetch active students with assigned routes (1 query)
   const students = await prisma.student.findMany({
     where: { routeId: { not: null }, status: "ACTIVE" },
     include: { route: true }
   });
 
-  // Use the current month (not next month) for more intuitive behavior
-  const now = new Date();
-  const monthName = now.toLocaleString('default', { month: 'long', year: 'numeric' });
-  
-  // Due date: 15th of next month
-  const dueDate = new Date(now.getFullYear(), now.getMonth() + 1, 15);
+  if (students.length === 0) {
+    return { created: 0, skipped: 0, month: monthName };
+  }
 
-  let created = 0;
+  const studentIds = students.map(s => s.id);
+
+  // 2. Fetch existing challans for this month in BATCH (1 query)
+  const existingChallans = await prisma.challan.findMany({
+    where: {
+      studentId: { in: studentIds },
+      month: monthName,
+    },
+    select: { studentId: true }
+  });
+  const existingStudentIds = new Set(existingChallans.map(c => c.studentId));
+
+  // 3. Fetch all pending/partial challans with payments for arrears calculation in BATCH (1 query)
+  const pendingChallans = await prisma.challan.findMany({
+    where: {
+      studentId: { in: studentIds },
+      status: { in: ["UNPAID", "PARTIAL"] },
+    },
+    include: { payments: { select: { amount: true } } }
+  });
+
+  // Pre-calculate arrears per student in memory
+  const arrearsMap = new Map<string, number>();
+  for (const pc of pendingChallans) {
+    const totalPaid = pc.payments.reduce((sum, p) => sum + p.amount, 0);
+    const remaining = (pc.amount + pc.arrears) - totalPaid;
+    if (remaining > 0) {
+      arrearsMap.set(pc.studentId, (arrearsMap.get(pc.studentId) || 0) + remaining);
+    }
+  }
+
+  // Build new challans payload in memory
+  const newChallans = [];
   let skipped = 0;
 
   for (const student of students) {
     if (!student.route) continue;
 
-    // Duplicate check: skip if challan already exists for this student + month
-    const existing = await prisma.challan.findFirst({
-      where: { studentId: student.id, month: monthName }
-    });
-
-    if (existing) {
+    if (existingStudentIds.has(student.id)) {
       skipped++;
       continue;
     }
 
-    // Calculate arrears from ALL previous unpaid/partial challans
-    const pendingChallans = await prisma.challan.findMany({
-      where: {
-        studentId: student.id,
-        status: { in: ["UNPAID", "PARTIAL"] },
-      },
-      include: { payments: true }
+    newChallans.push({
+      studentId: student.id,
+      amount: student.route.feeAmount,
+      arrears: arrearsMap.get(student.id) || 0,
+      month: monthName,
+      dueDate: dueDate,
+      status: "UNPAID",
     });
+  }
 
-    let calculatedArrears = 0;
-    for (const pc of pendingChallans) {
-      const totalPaid = pc.payments.reduce((sum, p) => sum + p.amount, 0);
-      const totalDue = pc.amount + pc.arrears;
-      calculatedArrears += (totalDue - totalPaid);
-    }
-
-    // Use a transaction to create the challan atomically
-    await prisma.$transaction(async (tx) => {
-      await tx.challan.create({
-        data: {
-          studentId: student.id,
-          amount: student.route!.feeAmount,
-          arrears: calculatedArrears,
-          month: monthName,
-          dueDate: dueDate,
-          status: "UNPAID"
-        }
-      });
+  // 4. Bulk insert all new challans in 1 SINGLE DB call
+  if (newChallans.length > 0) {
+    await prisma.challan.createMany({
+      data: newChallans,
     });
-
-    created++;
   }
 
   revalidatePath("/");
   revalidatePath("/finance");
 
-  return { created, skipped, month: monthName };
+  return { created: newChallans.length, skipped, month: monthName };
 }
 
 export async function receivePayment(challanId: string, amount: number, method: string = "Cash") {

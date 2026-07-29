@@ -70,6 +70,8 @@ model Vehicle {
   routeId            String?
   route              Route?   @relation(fields: [routeId], references: [id])
   students           Student[]
+
+  @@index([routeId])
 }
 
 model Route {
@@ -95,6 +97,11 @@ model Student {
   status       String    @default("ACTIVE")
   challans     Challan[]
   payments     Payment[]
+
+  @@index([instituteId])
+  @@index([routeId])
+  @@index([vehicleId])
+  @@index([status])
 }
 
 model Challan {
@@ -107,6 +114,11 @@ model Challan {
   dueDate   DateTime?
   status    String    @default("UNPAID")
   payments  Payment[]
+
+  @@index([studentId])
+  @@index([status])
+  @@index([month])
+  @@index([studentId, status])
 }
 
 model Payment {
@@ -118,6 +130,10 @@ model Payment {
   amount    Float
   method    String   @default("Cash")
   date      DateTime @default(now())
+
+  @@index([studentId])
+  @@index([challanId])
+  @@index([date])
 }
 
 model Settings {

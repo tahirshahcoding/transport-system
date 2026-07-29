@@ -19,6 +19,7 @@ export default async function FinancePage() {
         },
       },
       orderBy: { id: "desc" },
+      take: 100,
     }),
     prisma.payment.findMany({
       include: {
@@ -26,6 +27,7 @@ export default async function FinancePage() {
         challan: { select: { month: true } },
       },
       orderBy: { date: "desc" },
+      take: 50,
     }),
     prisma.payment.aggregate({ _sum: { amount: true } }),
     prisma.challan.aggregate({
