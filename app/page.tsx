@@ -60,7 +60,7 @@ export default async function Dashboard() {
       {/* Greeting */}
       <div className="mb-5">
         <h2 className="text-xl font-bold tracking-tight font-outfit text-slate-900">
-          Good Morning, Admin! 👋
+          Good Morning, Rahim Ullah👋
         </h2>
         <p className="text-xs text-slate-500 mt-0.5">Here&apos;s what&apos;s happening today.</p>
       </div>
@@ -155,7 +155,7 @@ export default async function Dashboard() {
             <div className="bg-blue-50/80 p-4 rounded-2xl group-hover:bg-blue-100 transition-colors w-full flex items-center justify-center aspect-square">
               <UserPlus className="h-6 w-6 text-blue-600" />
             </div>
-            <span className="text-[10px] font-semibold text-slate-600">Add<br/>Student</span>
+            <span className="text-[10px] font-semibold text-slate-600">Add<br />Student</span>
           </Link>
           <Link href="/finance?tab=Challans" className="flex flex-col items-center gap-2 group">
             <div className="bg-green-50/80 p-4 rounded-2xl group-hover:bg-green-100 transition-colors w-full flex items-center justify-center aspect-square">
@@ -173,7 +173,7 @@ export default async function Dashboard() {
             <div className="bg-purple-50/80 p-4 rounded-2xl group-hover:bg-purple-100 transition-colors w-full flex items-center justify-center aspect-square">
               <Bus className="h-6 w-6 text-purple-600" />
             </div>
-            <span className="text-[10px] font-semibold text-slate-600">Add<br/>Vehicle</span>
+            <span className="text-[10px] font-semibold text-slate-600">Add<br />Vehicle</span>
           </Link>
         </div>
       </div>

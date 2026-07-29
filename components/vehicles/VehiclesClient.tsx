@@ -72,7 +72,7 @@ export function VehiclesClient({ initialVehicles, availableRoutes = [] }: { init
           <DialogTrigger className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl shadow-sm flex items-center gap-2 text-sm font-semibold transition-colors">
             <Plus className="w-4 h-4" /> Add Vehicle
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[400px] rounded-2xl border-slate-100 mx-4">
+          <DialogContent className="sm:max-w-[420px] rounded-3xl border-slate-100 p-6">
             <DialogHeader>
               <DialogTitle className="font-outfit text-lg">Add New Vehicle</DialogTitle>
             </DialogHeader>
@@ -108,7 +108,7 @@ export function VehiclesClient({ initialVehicles, availableRoutes = [] }: { init
 
       {/* Edit Vehicle Dialog */}
       <Dialog open={!!editingVehicle} onOpenChange={(open) => !open && setEditingVehicle(null)}>
-        <DialogContent className="sm:max-w-[400px] rounded-2xl border-slate-100 mx-4">
+        <DialogContent className="sm:max-w-[420px] rounded-3xl border-slate-100 p-6">
           <DialogHeader>
             <DialogTitle className="font-outfit text-lg">Edit Vehicle</DialogTitle>
           </DialogHeader>

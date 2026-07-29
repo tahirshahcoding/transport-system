@@ -408,10 +408,22 @@ export async function seedDatabase() {
   revalidatePath("/finance");
 }
 
-export async function generateChallans() {
+export async function generateChallans(targetMonth?: string) {
   const now = new Date();
-  const monthName = now.toLocaleString('default', { month: 'long', year: 'numeric' });
-  const dueDate = new Date(now.getFullYear(), now.getMonth() + 1, 15);
+  const monthName = targetMonth || now.toLocaleString('default', { month: 'long', year: 'numeric' });
+  
+  // Calculate due date based on target month/year (default: 15th of that month)
+  let dueDate = new Date(now.getFullYear(), now.getMonth() + 1, 15);
+  if (targetMonth) {
+    const parts = targetMonth.split(" ");
+    if (parts.length === 2) {
+      const mIndex = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].indexOf(parts[0]);
+      const yearNum = parseInt(parts[1], 10);
+      if (mIndex !== -1 && !isNaN(yearNum)) {
+        dueDate = new Date(yearNum, mIndex, 15);
+      }
+    }
+  }
 
   // 1. Fetch active students with assigned routes (1 query)
   const students = await prisma.student.findMany({

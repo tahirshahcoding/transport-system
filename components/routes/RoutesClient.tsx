@@ -61,7 +61,7 @@ export function RoutesClient({ initialRoutes }: { initialRoutes: Route[] }) {
           <DialogTrigger className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl shadow-sm flex items-center gap-2 text-sm font-semibold transition-colors">
             <Plus className="w-4 h-4" /> Add Route
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[400px] rounded-2xl border-slate-100 mx-4">
+          <DialogContent className="sm:max-w-[420px] rounded-3xl border-slate-100 p-6">
             <DialogHeader>
               <DialogTitle className="font-outfit text-lg">Add New Route</DialogTitle>
             </DialogHeader>
@@ -84,7 +84,7 @@ export function RoutesClient({ initialRoutes }: { initialRoutes: Route[] }) {
 
       {/* Edit Route Dialog */}
       <Dialog open={!!editingRoute} onOpenChange={(open) => !open && setEditingRoute(null)}>
-        <DialogContent className="sm:max-w-[400px] rounded-2xl border-slate-100 mx-4">
+        <DialogContent className="sm:max-w-[420px] rounded-3xl border-slate-100 p-6">
           <DialogHeader>
             <DialogTitle className="font-outfit text-lg">Edit Route</DialogTitle>
           </DialogHeader>

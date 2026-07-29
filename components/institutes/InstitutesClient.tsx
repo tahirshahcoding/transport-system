@@ -72,7 +72,7 @@ export function InstitutesClient({ initialInstitutes }: { initialInstitutes: Ins
           <DialogTrigger className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl shadow-sm flex items-center gap-2 text-sm font-semibold transition-colors">
             <Plus className="w-4 h-4" /> Add Institute
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[400px] rounded-2xl border-slate-100 mx-4">
+          <DialogContent className="sm:max-w-[420px] rounded-3xl border-slate-100 p-6">
             <DialogHeader>
               <DialogTitle className="font-outfit text-lg">Add New Institute</DialogTitle>
             </DialogHeader>
@@ -91,7 +91,7 @@ export function InstitutesClient({ initialInstitutes }: { initialInstitutes: Ins
 
       {/* Edit Dialog */}
       <Dialog open={!!editingInstitute} onOpenChange={(open) => !open && setEditingInstitute(null)}>
-        <DialogContent className="sm:max-w-[400px] rounded-2xl border-slate-100 mx-4">
+        <DialogContent className="sm:max-w-[420px] rounded-3xl border-slate-100 p-6">
           <DialogHeader>
             <DialogTitle className="font-outfit text-lg">Edit Institute</DialogTitle>
           </DialogHeader>

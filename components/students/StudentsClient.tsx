@@ -150,7 +150,7 @@ export function StudentsClient({
           <DialogTrigger className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl shadow-sm flex items-center gap-2 text-sm font-semibold transition-colors">
             <Plus className="w-4 h-4" /> Add Student
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[400px] rounded-2xl border-slate-100 mx-4 max-h-[90vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-[420px] rounded-3xl border-slate-100 p-6 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="font-outfit text-lg">Add New Student</DialogTitle>
             </DialogHeader>
@@ -223,7 +223,7 @@ export function StudentsClient({
 
       {/* Edit Student Dialog */}
       <Dialog open={!!editingStudent} onOpenChange={(open) => { if (!open) { setEditingStudent(null); setEditSelectedRouteId(""); } }}>
-        <DialogContent className="sm:max-w-[400px] rounded-2xl border-slate-100 mx-4 max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[420px] rounded-3xl border-slate-100 p-6 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-outfit text-lg">Edit Student</DialogTitle>
           </DialogHeader>
