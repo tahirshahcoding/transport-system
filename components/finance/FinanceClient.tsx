@@ -94,10 +94,16 @@ export function FinanceClient({
   };
 
   const handleWhatsAppReminder = (challan: Challan) => {
+    let phone = challan.student.mobileNumber;
+    if (!phone) {
+      const input = prompt("This student has no mobile number saved. Enter a WhatsApp number (e.g. 923001234567):");
+      if (!input) return;
+      phone = input.trim();
+    }
     const totalPaid = challan.payments.reduce((sum, p) => sum + p.amount, 0);
     const totalDue = challan.amount + challan.arrears - totalPaid;
     const message = `Assalam o Alaikum ${challan.student.fatherName || challan.student.name},\n\nThis is a fee reminder from the Transport Department.\n\nStudent: ${challan.student.name}\nClass: ${challan.student.class}\nMonth: ${challan.month}\nAmount Due: Rs ${totalDue.toLocaleString()}\n\nPlease clear the pending dues at your earliest convenience. JazakAllah.`;
-    const url = `https://wa.me/${challan.student.mobileNumber}?text=${encodeURIComponent(message)}`;
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
   };
 
@@ -336,7 +342,7 @@ export function FinanceClient({
                         <Button variant="outline" size="sm" onClick={() => handlePrintChallan(challan)} className="rounded-lg border-slate-200 text-[10px] h-7 gap-1 px-2">
                           <Printer className="w-3 h-3" /> Print
                         </Button>
-                        {challan.student.mobileNumber && challan.status !== "PAID" && (
+                        {challan.status !== "PAID" && (
                           <Button 
                             variant="outline" 
                             size="sm" 
