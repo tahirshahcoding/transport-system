@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Bus, Plus, Search, Trash2 } from "lucide-react";
+import { Bus, Plus, Search, Trash2, Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { addVehicle, deleteVehicle } from "@/app/actions";
+import { addVehicle, updateVehicle, deleteVehicle } from "@/app/actions";
 import { useAppDialog } from "@/components/ui/app-dialog";
 
 type Vehicle = {
@@ -20,6 +20,7 @@ type Vehicle = {
 export function VehiclesClient({ initialVehicles, availableRoutes = [] }: { initialVehicles: Vehicle[], availableRoutes?: { id: string, name: string }[] }) {
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const [isPending, startTransition] = useTransition();
   const dialog = useAppDialog();
 
@@ -37,6 +38,20 @@ export function VehiclesClient({ initialVehicles, availableRoutes = [] }: { init
     startTransition(async () => {
       await addVehicle({ registration, capacity, routeId: routeId || undefined });
       setIsOpen(false);
+    });
+  };
+
+  const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingVehicle) return;
+    const formData = new FormData(e.currentTarget);
+    const registration = formData.get("registration") as string;
+    const capacity = parseInt(formData.get("capacity") as string, 10);
+    const routeId = formData.get("routeId") as string;
+
+    startTransition(async () => {
+      await updateVehicle(editingVehicle.id, { registration, capacity, routeId: routeId || undefined });
+      setEditingVehicle(null);
     });
   };
 
@@ -83,6 +98,44 @@ export function VehiclesClient({ initialVehicles, availableRoutes = [] }: { init
         </Dialog>
       </div>
 
+      {/* Edit Vehicle Dialog */}
+      <Dialog open={!!editingVehicle} onOpenChange={(open) => !open && setEditingVehicle(null)}>
+        <DialogContent className="sm:max-w-[400px] rounded-2xl border-slate-100 mx-4">
+          <DialogHeader>
+            <DialogTitle className="font-outfit text-lg">Edit Vehicle</DialogTitle>
+          </DialogHeader>
+          {editingVehicle && (
+            <form onSubmit={handleEditSubmit} className="space-y-4 pt-2">
+              <div className="space-y-2">
+                <Label htmlFor="edit-registration" className="text-xs font-semibold text-slate-600">Registration Number</Label>
+                <Input id="edit-registration" name="registration" defaultValue={editingVehicle.registrationNumber} required className="rounded-xl bg-slate-50 border-slate-200 h-10" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-capacity" className="text-xs font-semibold text-slate-600">Seating Capacity</Label>
+                <Input id="edit-capacity" name="capacity" type="number" defaultValue={editingVehicle.capacity || 40} required className="rounded-xl bg-slate-50 border-slate-200 h-10" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-routeId" className="text-xs font-semibold text-slate-600">Assign to Route (Optional)</Label>
+                <select 
+                  id="edit-routeId" 
+                  name="routeId" 
+                  defaultValue={availableRoutes.find(r => r.name === editingVehicle.route?.name)?.id || ""}
+                  className="w-full rounded-xl bg-slate-50 border-slate-200 h-10 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2"
+                >
+                  <option value="">-- No Route Assigned --</option>
+                  {availableRoutes.map(r => (
+                    <option key={r.id} value={r.id}>{r.name}</option>
+                  ))}
+                </select>
+              </div>
+              <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 rounded-xl h-10" disabled={isPending}>
+                {isPending ? "Updating..." : "Update Vehicle"}
+              </Button>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Search */}
       <div className="relative mb-5">
         <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
@@ -124,21 +177,29 @@ export function VehiclesClient({ initialVehicles, availableRoutes = [] }: { init
                       Route: <span className="font-semibold text-slate-600">{vehicle.route?.name || "None"}</span>
                     </p>
                   </div>
-                  <button 
-                    onClick={async () => {
-                      const confirmed = await dialog.showConfirm(
-                        "Delete Vehicle",
-                        `Are you sure you want to delete ${vehicle.registrationNumber}? Students assigned to it will be unassigned.`
-                      );
-                      if (confirmed) {
-                        startTransition(() => deleteVehicle(vehicle.id));
-                      }
-                    }}
-                    className="text-red-400 p-1 hover:text-red-600 transition-colors bg-red-50 rounded-lg h-7 w-7 flex items-center justify-center"
-                    disabled={isPending}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex gap-1">
+                    <button 
+                      onClick={() => setEditingVehicle(vehicle)}
+                      className="text-slate-400 p-1 hover:text-blue-600 transition-colors bg-slate-50 rounded-lg h-7 w-7 flex items-center justify-center"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button 
+                      onClick={async () => {
+                        const confirmed = await dialog.showConfirm(
+                          "Delete Vehicle",
+                          `Are you sure you want to delete ${vehicle.registrationNumber}? Students assigned to it will be unassigned.`
+                        );
+                        if (confirmed) {
+                          startTransition(() => deleteVehicle(vehicle.id));
+                        }
+                      }}
+                      className="text-red-400 p-1 hover:text-red-600 transition-colors bg-red-50 rounded-lg h-7 w-7 flex items-center justify-center"
+                      disabled={isPending}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
                 <span className="inline-block text-[10px] bg-green-50 text-green-600 px-2 py-0.5 rounded-full font-semibold mt-2">
                   Active

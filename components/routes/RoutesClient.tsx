@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Map, Plus, Search, Trash2 } from "lucide-react";
+import { Map, Plus, Search, Trash2, Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { addRoute, deleteRoute } from "@/app/actions";
+import { addRoute, updateRoute, deleteRoute } from "@/app/actions";
 import { useAppDialog } from "@/components/ui/app-dialog";
 
 type Route = {
@@ -19,6 +19,7 @@ type Route = {
 export function RoutesClient({ initialRoutes }: { initialRoutes: Route[] }) {
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [editingRoute, setEditingRoute] = useState<Route | null>(null);
   const [isPending, startTransition] = useTransition();
   const dialog = useAppDialog();
 
@@ -35,6 +36,19 @@ export function RoutesClient({ initialRoutes }: { initialRoutes: Route[] }) {
     startTransition(async () => {
       await addRoute({ name, fee });
       setIsOpen(false);
+    });
+  };
+
+  const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingRoute) return;
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get("name") as string;
+    const fee = parseInt(formData.get("fee") as string, 10);
+
+    startTransition(async () => {
+      await updateRoute(editingRoute.id, { name, fee });
+      setEditingRoute(null);
     });
   };
 
@@ -67,6 +81,30 @@ export function RoutesClient({ initialRoutes }: { initialRoutes: Route[] }) {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Edit Route Dialog */}
+      <Dialog open={!!editingRoute} onOpenChange={(open) => !open && setEditingRoute(null)}>
+        <DialogContent className="sm:max-w-[400px] rounded-2xl border-slate-100 mx-4">
+          <DialogHeader>
+            <DialogTitle className="font-outfit text-lg">Edit Route</DialogTitle>
+          </DialogHeader>
+          {editingRoute && (
+            <form onSubmit={handleEditSubmit} className="space-y-4 pt-2">
+              <div className="space-y-2">
+                <Label htmlFor="edit-name" className="text-xs font-semibold text-slate-600">Route Name</Label>
+                <Input id="edit-name" name="name" defaultValue={editingRoute.name} required className="rounded-xl bg-slate-50 border-slate-200 h-10" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-fee" className="text-xs font-semibold text-slate-600">Monthly Fee (Rs)</Label>
+                <Input id="edit-fee" name="fee" type="number" defaultValue={editingRoute.feeAmount} required className="rounded-xl bg-slate-50 border-slate-200 h-10" />
+              </div>
+              <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 rounded-xl h-10" disabled={isPending}>
+                {isPending ? "Updating..." : "Update Route"}
+              </Button>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Search */}
       <div className="relative mb-5">
@@ -107,21 +145,29 @@ export function RoutesClient({ initialRoutes }: { initialRoutes: Route[] }) {
                       {route._count.vehicles} Vehicle(s)
                     </p>
                   </div>
-                  <button 
-                    onClick={async () => {
-                      const confirmed = await dialog.showConfirm(
-                        "Delete Route",
-                        `Are you sure you want to delete "${route.name}"? Students and vehicles will be unassigned.`
-                      );
-                      if (confirmed) {
-                        startTransition(() => deleteRoute(route.id));
-                      }
-                    }}
-                    className="text-red-400 p-1 hover:text-red-600 transition-colors bg-red-50 rounded-lg h-7 w-7 flex items-center justify-center"
-                    disabled={isPending}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex gap-1">
+                    <button 
+                      onClick={() => setEditingRoute(route)}
+                      className="text-slate-400 p-1 hover:text-blue-600 transition-colors bg-slate-50 rounded-lg h-7 w-7 flex items-center justify-center"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button 
+                      onClick={async () => {
+                        const confirmed = await dialog.showConfirm(
+                          "Delete Route",
+                          `Are you sure you want to delete "${route.name}"? Students and vehicles will be unassigned.`
+                        );
+                        if (confirmed) {
+                          startTransition(() => deleteRoute(route.id));
+                        }
+                      }}
+                      className="text-red-400 p-1 hover:text-red-600 transition-colors bg-red-50 rounded-lg h-7 w-7 flex items-center justify-center"
+                      disabled={isPending}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
                 <span className="inline-block text-[10px] bg-green-50 text-green-600 px-2 py-0.5 rounded-full font-semibold mt-2">
                   Active

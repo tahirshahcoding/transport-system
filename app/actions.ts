@@ -32,6 +32,37 @@ export async function addStudent(data: { name: string; fatherName: string; mobil
   revalidatePath("/");
 }
 
+export async function updateStudent(id: string, data: { name: string; fatherName: string; mobileNumber: string; class: string; routeId?: string; instituteId?: string; vehicleId?: string }) {
+  await prisma.student.update({
+    where: { id },
+    data: {
+      name: data.name,
+      fatherName: data.fatherName,
+      mobileNumber: data.mobileNumber,
+      class: data.class,
+      instituteId: data.instituteId,
+      routeId: data.routeId || null,
+      vehicleId: data.vehicleId || null,
+    }
+  });
+
+  revalidatePath("/students");
+  revalidatePath("/");
+}
+
+export async function deleteStudent(id: string) {
+  await prisma.$transaction(async (tx) => {
+    // Delete student's payments and challans first
+    await tx.payment.deleteMany({ where: { studentId: id } });
+    await tx.challan.deleteMany({ where: { studentId: id } });
+    await tx.student.delete({ where: { id } });
+  });
+
+  revalidatePath("/students");
+  revalidatePath("/finance");
+  revalidatePath("/");
+}
+
 export async function toggleStudentStatus(studentId: string, currentStatus: string) {
   await prisma.student.update({
     where: { id: studentId },
@@ -110,6 +141,22 @@ export async function addVehicle(data: { registration: string; capacity: number;
   revalidatePath("/");
 }
 
+export async function updateVehicle(id: string, data: { registration: string; capacity: number; routeId?: string }) {
+  await prisma.vehicle.update({
+    where: { id },
+    data: {
+      registrationNumber: data.registration,
+      capacity: data.capacity,
+      routeId: data.routeId || null,
+    }
+  });
+
+  revalidatePath("/vehicles");
+  revalidatePath("/routes");
+  revalidatePath("/students");
+  revalidatePath("/");
+}
+
 export async function deleteVehicle(id: string) {
   // First nullify any students attached to this vehicle
   await prisma.student.updateMany({
@@ -137,6 +184,37 @@ export async function addInstitute(data: { name: string }) {
   revalidatePath("/");
 }
 
+export async function updateInstitute(id: string, data: { name: string }) {
+  await prisma.institute.update({
+    where: { id },
+    data: { name: data.name }
+  });
+
+  revalidatePath("/institutes");
+  revalidatePath("/students");
+  revalidatePath("/");
+}
+
+export async function deleteInstitute(id: string) {
+  // First nullify institute on students or reassign
+  const defaultInstitute = await prisma.institute.findFirst({
+    where: { NOT: { id } }
+  });
+
+  if (defaultInstitute) {
+    await prisma.student.updateMany({
+      where: { instituteId: id },
+      data: { instituteId: defaultInstitute.id }
+    });
+  }
+
+  await prisma.institute.delete({ where: { id } });
+
+  revalidatePath("/institutes");
+  revalidatePath("/students");
+  revalidatePath("/");
+}
+
 export async function addRoute(data: { name: string; fee: number }) {
   await prisma.route.create({
     data: {
@@ -146,6 +224,21 @@ export async function addRoute(data: { name: string; fee: number }) {
   });
 
   revalidatePath("/routes");
+  revalidatePath("/");
+}
+
+export async function updateRoute(id: string, data: { name: string; fee: number }) {
+  await prisma.route.update({
+    where: { id },
+    data: {
+      name: data.name,
+      feeAmount: data.fee,
+    }
+  });
+
+  revalidatePath("/routes");
+  revalidatePath("/students");
+  revalidatePath("/vehicles");
   revalidatePath("/");
 }
 

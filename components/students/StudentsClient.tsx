@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Search, Plus, Users, Ban, CheckCircle, FileText, Phone } from "lucide-react";
-import { addStudent, toggleStudentStatus, generateIndividualChallan } from "@/app/actions";
+import { Search, Plus, Users, Ban, CheckCircle, FileText, Phone, Pencil, Trash2 } from "lucide-react";
+import { addStudent, updateStudent, deleteStudent, toggleStudentStatus, generateIndividualChallan } from "@/app/actions";
+import { useAppDialog } from "@/components/ui/app-dialog";
 
 type Student = {
   id: string;
@@ -40,9 +41,12 @@ export function StudentsClient({
   
   // Modal State
   const [isOpen, setIsOpen] = useState(false);
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [selectedRouteId, setSelectedRouteId] = useState("");
+  const [editSelectedRouteId, setEditSelectedRouteId] = useState("");
   
   const [isPending, startTransition] = useTransition();
+  const dialog = useAppDialog();
 
   const filteredStudents = initialStudents.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
@@ -56,7 +60,11 @@ export function StudentsClient({
     ? availableVehicles.filter(v => v.routeId === selectedRouteId)
     : availableVehicles;
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const vehiclesForEditRoute = editSelectedRouteId 
+    ? availableVehicles.filter(v => v.routeId === editSelectedRouteId)
+    : availableVehicles;
+
+  const handleCreateSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const name = formData.get("name") as string;
@@ -74,6 +82,51 @@ export function StudentsClient({
     });
   };
 
+  const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingStudent) return;
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get("name") as string;
+    const fatherName = formData.get("fatherName") as string;
+    const mobileNumber = formData.get("mobileNumber") as string;
+    const studentClass = formData.get("class") as string;
+    const routeId = formData.get("routeId") as string;
+    const instituteId = formData.get("instituteId") as string;
+    const vehicleId = formData.get("vehicleId") as string;
+
+    startTransition(async () => {
+      await updateStudent(editingStudent.id, {
+        name,
+        fatherName,
+        mobileNumber,
+        class: studentClass,
+        routeId: routeId || undefined,
+        instituteId: instituteId || undefined,
+        vehicleId: vehicleId || undefined,
+      });
+      setEditingStudent(null);
+      setEditSelectedRouteId("");
+    });
+  };
+
+  const handleDelete = async (student: Student) => {
+    const confirmed = await dialog.showConfirm(
+      "Delete Student",
+      `Are you sure you want to delete "${student.name}"? All associated challans and payments will also be deleted.`
+    );
+    if (confirmed) {
+      startTransition(async () => {
+        await deleteStudent(student.id);
+      });
+    }
+  };
+
+  const startEditing = (student: Student) => {
+    setEditingStudent(student);
+    const matchedRoute = availableRoutes.find(r => r.name === student.route?.name);
+    setEditSelectedRouteId(matchedRoute?.id || "");
+  };
+
   return (
     <div className="px-4 pt-4 pb-4 max-w-lg mx-auto md:max-w-5xl md:px-8 md:pt-8">
       {/* Top Bar */}
@@ -87,7 +140,7 @@ export function StudentsClient({
             <DialogHeader>
               <DialogTitle className="font-outfit text-lg">Add New Student</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+            <form onSubmit={handleCreateSubmit} className="space-y-4 pt-2">
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-xs font-semibold text-slate-600">Full Name</Label>
                 <Input id="name" name="name" placeholder="E.g. Ali Khan" required className="rounded-xl bg-slate-50 border-slate-200 h-10" />
@@ -153,6 +206,81 @@ export function StudentsClient({
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Edit Student Dialog */}
+      <Dialog open={!!editingStudent} onOpenChange={(open) => { if (!open) { setEditingStudent(null); setEditSelectedRouteId(""); } }}>
+        <DialogContent className="sm:max-w-[400px] rounded-2xl border-slate-100 mx-4 max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-outfit text-lg">Edit Student</DialogTitle>
+          </DialogHeader>
+          {editingStudent && (
+            <form onSubmit={handleEditSubmit} className="space-y-4 pt-2">
+              <div className="space-y-2">
+                <Label htmlFor="edit-student-name" className="text-xs font-semibold text-slate-600">Full Name</Label>
+                <Input id="edit-student-name" name="name" defaultValue={editingStudent.name} required className="rounded-xl bg-slate-50 border-slate-200 h-10" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-student-fatherName" className="text-xs font-semibold text-slate-600">Father&apos;s Name</Label>
+                <Input id="edit-student-fatherName" name="fatherName" defaultValue={editingStudent.fatherName} required className="rounded-xl bg-slate-50 border-slate-200 h-10" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-student-mobileNumber" className="text-xs font-semibold text-slate-600">Mobile Number (WhatsApp)</Label>
+                <Input id="edit-student-mobileNumber" name="mobileNumber" type="tel" defaultValue={editingStudent.mobileNumber} required className="rounded-xl bg-slate-50 border-slate-200 h-10" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-student-class" className="text-xs font-semibold text-slate-600">Class / Grade</Label>
+                <Input id="edit-student-class" name="class" defaultValue={editingStudent.class} required className="rounded-xl bg-slate-50 border-slate-200 h-10" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-student-instituteId" className="text-xs font-semibold text-slate-600">Assign Institute</Label>
+                <select 
+                  id="edit-student-instituteId" 
+                  name="instituteId" 
+                  defaultValue={availableInstitutes.find(i => i.name === editingStudent.institute.name)?.id || ""}
+                  className="w-full rounded-xl bg-slate-50 border-slate-200 h-10 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2"
+                >
+                  <option value="">-- Default Institute --</option>
+                  {availableInstitutes.map(i => (
+                    <option key={i.id} value={i.id}>{i.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-student-routeId" className="text-xs font-semibold text-slate-600">Assign Route (Optional)</Label>
+                <select 
+                  id="edit-student-routeId" 
+                  name="routeId" 
+                  value={editSelectedRouteId}
+                  onChange={(e) => setEditSelectedRouteId(e.target.value)}
+                  className="w-full rounded-xl bg-slate-50 border-slate-200 h-10 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2"
+                >
+                  <option value="">-- No Route Assigned --</option>
+                  {availableRoutes.map(r => (
+                    <option key={r.id} value={r.id}>{r.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-student-vehicleId" className="text-xs font-semibold text-slate-600">Assign Vehicle (Optional)</Label>
+                <select 
+                  id="edit-student-vehicleId" 
+                  name="vehicleId" 
+                  defaultValue={availableVehicles.find(v => v.registrationNumber === editingStudent.vehicle?.registrationNumber)?.id || ""}
+                  className="w-full rounded-xl bg-slate-50 border-slate-200 h-10 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2"
+                >
+                  <option value="">-- No Vehicle Assigned --</option>
+                  {vehiclesForEditRoute.map(v => (
+                    <option key={v.id} value={v.id}>{v.registrationNumber}</option>
+                  ))}
+                </select>
+              </div>
+              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 rounded-xl h-10" disabled={isPending}>
+                {isPending ? "Updating..." : "Update Student"}
+              </Button>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Filters */}
       <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-5 space-y-3">
@@ -234,7 +362,7 @@ export function StudentsClient({
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2">
-                    <div className="flex gap-2">
+                    <div className="flex gap-1.5 flex-wrap justify-end">
                       {student.route && student.status === "ACTIVE" && (
                         <button 
                           onClick={() => startTransition(() => generateIndividualChallan(student.id))}
@@ -252,6 +380,19 @@ export function StudentsClient({
                         }`}
                       >
                         {student.status === "ACTIVE" ? <><Ban className="w-3 h-3" /> Deactivate</> : <><CheckCircle className="w-3 h-3" /> Activate</>}
+                      </button>
+                      <button
+                        onClick={() => startEditing(student)}
+                        className="text-slate-400 p-1 hover:text-blue-600 transition-colors bg-slate-50 rounded-lg h-6 w-6 flex items-center justify-center"
+                      >
+                        <Pencil className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(student)}
+                        className="text-red-400 p-1 hover:text-red-600 transition-colors bg-red-50 rounded-lg h-6 w-6 flex items-center justify-center"
+                        disabled={isPending}
+                      >
+                        <Trash2 className="w-3 h-3" />
                       </button>
                     </div>
                     <span className={`inline-block text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
