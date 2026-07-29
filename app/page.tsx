@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { Users, Bus, Map, Wallet, Bell, Menu, ArrowUpRight, UserPlus, FileText, Receipt } from "lucide-react";
+import { Users, Bus, Map, Wallet, Bell, ArrowUpRight, UserPlus, FileText, Receipt } from "lucide-react";
 import { CircularProgress } from "@/components/dashboard/CircularProgress";
+import { DashboardChallanItem } from "@/components/dashboard/DashboardChallanItem";
 import Link from "next/link";
 
 export default async function Dashboard() {
@@ -20,7 +21,16 @@ export default async function Dashboard() {
     prisma.challan.aggregate({ _sum: { amount: true }, where: { status: "UNPAID" } }),
     prisma.challan.findMany({
       where: { status: "UNPAID" },
-      include: { student: { select: { name: true } } },
+      include: {
+        student: {
+          select: {
+            name: true,
+            fatherName: true,
+            mobileNumber: true,
+            class: true,
+          },
+        },
+      },
       orderBy: { id: "desc" },
       take: 3,
     }),
@@ -37,7 +47,7 @@ export default async function Dashboard() {
     <div className="px-4 pt-4 pb-4 max-w-lg mx-auto md:max-w-5xl md:px-8 md:pt-8">
       {/* Top Bar */}
       <div className="flex items-center justify-between mb-5 md:hidden">
-        <div className="w-6 h-6" /> {/* Placeholder to keep Dashboard text centered */}
+        <div className="w-6 h-6" />
         <span className="text-base font-bold font-outfit text-slate-900">Dashboard</span>
         <div className="relative">
           <Bell className="w-6 h-6 text-slate-700" />
@@ -121,57 +131,45 @@ export default async function Dashboard() {
       {/* Recent Challans */}
       <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm mb-5">
         <div className="flex items-center justify-between mb-4">
-          <p className="text-xs font-semibold text-slate-700">Recent Challans</p>
-          <Link href="/finance" className="text-[10px] text-blue-600 font-semibold cursor-pointer">View All</Link>
+          <p className="text-xs font-semibold text-slate-700">Recent Unpaid Challans</p>
+          <Link href="/finance?tab=Challans" className="text-[10px] text-blue-600 font-semibold cursor-pointer">View All</Link>
         </div>
         {recentChallans.length === 0 ? (
-          <p className="text-xs text-slate-400 text-center py-4">No challans yet.</p>
+          <p className="text-xs text-slate-400 text-center py-4">No unpaid challans.</p>
         ) : (
           <div className="space-y-3">
             {recentChallans.map((challan) => (
-              <div key={challan.id} className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-[10px] font-mono text-blue-600 font-semibold">
-                    CH-{challan.id.slice(-6).toUpperCase()}
-                  </span>
-                  <span className="text-xs text-slate-700 font-medium">{challan.student.name}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-semibold text-slate-900">Rs {challan.amount.toLocaleString()}</span>
-                  <span className="text-[9px] bg-red-50 text-red-500 px-2 py-0.5 rounded-full font-semibold">
-                    Unpaid
-                  </span>
-                </div>
-              </div>
+              <DashboardChallanItem key={challan.id} challan={challan} />
             ))}
           </div>
         )}
       </div>
+
       {/* Quick Actions */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm mb-5">
         <div className="p-5 pb-3">
           <h3 className="text-sm font-semibold text-slate-800">Quick Actions</h3>
         </div>
         <div className="p-5 pt-0 grid grid-cols-4 gap-2 text-center">
-          <Link href="/students" className="flex flex-col items-center gap-2 group">
+          <Link href="/students?action=add" className="flex flex-col items-center gap-2 group">
             <div className="bg-blue-50/80 p-4 rounded-2xl group-hover:bg-blue-100 transition-colors w-full flex items-center justify-center aspect-square">
               <UserPlus className="h-6 w-6 text-blue-600" />
             </div>
             <span className="text-[10px] font-semibold text-slate-600">Add<br/>Student</span>
           </Link>
-          <Link href="/finance" className="flex flex-col items-center gap-2 group">
+          <Link href="/finance?tab=Challans" className="flex flex-col items-center gap-2 group">
             <div className="bg-green-50/80 p-4 rounded-2xl group-hover:bg-green-100 transition-colors w-full flex items-center justify-center aspect-square">
               <FileText className="h-6 w-6 text-green-600" />
             </div>
-            <span className="text-[10px] font-semibold text-slate-600">Challan</span>
+            <span className="text-[10px] font-semibold text-slate-600">Challans</span>
           </Link>
-          <Link href="/finance" className="flex flex-col items-center gap-2 group">
+          <Link href="/finance?tab=Payments" className="flex flex-col items-center gap-2 group">
             <div className="bg-orange-50/80 p-4 rounded-2xl group-hover:bg-orange-100 transition-colors w-full flex items-center justify-center aspect-square">
               <Receipt className="h-6 w-6 text-orange-500" />
             </div>
-            <span className="text-[10px] font-semibold text-slate-600">Payment</span>
+            <span className="text-[10px] font-semibold text-slate-600">Payments</span>
           </Link>
-          <Link href="/vehicles" className="flex flex-col items-center gap-2 group">
+          <Link href="/vehicles?action=add" className="flex flex-col items-center gap-2 group">
             <div className="bg-purple-50/80 p-4 rounded-2xl group-hover:bg-purple-100 transition-colors w-full flex items-center justify-center aspect-square">
               <Bus className="h-6 w-6 text-purple-600" />
             </div>

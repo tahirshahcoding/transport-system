@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { FinanceClient } from "@/components/finance/FinanceClient";
 
@@ -40,12 +41,14 @@ export default async function FinancePage() {
   const uniqueMonths = [...new Set(allChallans.map(c => c.month))];
 
   return (
-    <FinanceClient
-      allChallans={allChallans}
-      allPayments={allPayments}
-      uniqueMonths={uniqueMonths}
-      totalCollection={collections._sum.amount || 0}
-      totalPending={(pendingAmounts._sum.amount || 0) + (pendingAmounts._sum.arrears || 0)}
-    />
+    <Suspense fallback={<div className="p-8 text-center text-xs text-slate-400">Loading Finance...</div>}>
+      <FinanceClient
+        allChallans={allChallans}
+        allPayments={allPayments}
+        uniqueMonths={uniqueMonths}
+        totalCollection={collections._sum.amount || 0}
+        totalPending={(pendingAmounts._sum.amount || 0) + (pendingAmounts._sum.arrears || 0)}
+      />
+    </Suspense>
   );
 }

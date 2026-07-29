@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
+import { useState, useTransition, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,12 +33,14 @@ export function StudentsClient({
   availableInstitutes?: { id: string, name: string }[],
   availableVehicles?: { id: string, registrationNumber: string, routeId: string | null }[]
 }) {
+  const searchParams = useSearchParams();
   const [search, setSearch] = useState("");
   
   // Filters
   const [filterInstitute, setFilterInstitute] = useState("");
   const [filterRoute, setFilterRoute] = useState("");
   const [filterVehicle, setFilterVehicle] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
   
   // Modal State
   const [isOpen, setIsOpen] = useState(false);
@@ -48,12 +51,23 @@ export function StudentsClient({
   const [isPending, startTransition] = useTransition();
   const dialog = useAppDialog();
 
+  useEffect(() => {
+    if (searchParams.get("action") === "add") {
+      setIsOpen(true);
+    }
+    const instParam = searchParams.get("institute");
+    if (instParam) {
+      setFilterInstitute(instParam);
+    }
+  }, [searchParams]);
+
   const filteredStudents = initialStudents.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
     const matchesInstitute = filterInstitute ? s.institute.name === availableInstitutes.find(i => i.id === filterInstitute)?.name : true;
     const matchesRoute = filterRoute ? s.route?.name === availableRoutes.find(r => r.id === filterRoute)?.name : true;
     const matchesVehicle = filterVehicle ? s.vehicle?.registrationNumber === availableVehicles.find(v => v.id === filterVehicle)?.registrationNumber : true;
-    return matchesSearch && matchesInstitute && matchesRoute && matchesVehicle;
+    const matchesStatus = filterStatus ? s.status === filterStatus : true;
+    return matchesSearch && matchesInstitute && matchesRoute && matchesVehicle && matchesStatus;
   });
 
   const vehiclesForSelectedRoute = selectedRouteId 
@@ -294,9 +308,18 @@ export function StudentsClient({
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           <select 
-            className="w-full rounded-xl bg-slate-50 border-transparent h-9 px-3 text-[11px] font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-200"
+            className="w-full rounded-xl bg-slate-50 border-transparent h-9 px-2 text-[11px] font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-200"
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+          >
+            <option value="">All Status</option>
+            <option value="ACTIVE">Active Only</option>
+            <option value="INACTIVE">Inactive Only</option>
+          </select>
+          <select 
+            className="w-full rounded-xl bg-slate-50 border-transparent h-9 px-2 text-[11px] font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-200"
             value={filterInstitute}
             onChange={(e) => setFilterInstitute(e.target.value)}
           >
@@ -304,7 +327,7 @@ export function StudentsClient({
             {availableInstitutes.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
           </select>
           <select 
-            className="w-full rounded-xl bg-slate-50 border-transparent h-9 px-3 text-[11px] font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-200"
+            className="w-full rounded-xl bg-slate-50 border-transparent h-9 px-2 text-[11px] font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-200"
             value={filterRoute}
             onChange={(e) => setFilterRoute(e.target.value)}
           >
@@ -312,7 +335,7 @@ export function StudentsClient({
             {availableRoutes.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
           </select>
           <select 
-            className="w-full rounded-xl bg-slate-50 border-transparent h-9 px-3 text-[11px] font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-200"
+            className="w-full rounded-xl bg-slate-50 border-transparent h-9 px-2 text-[11px] font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-200"
             value={filterVehicle}
             onChange={(e) => setFilterVehicle(e.target.value)}
           >

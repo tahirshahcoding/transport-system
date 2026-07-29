@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
+import { useState, useTransition, useEffect } from "react";
 import { Bus, Plus, Search, Trash2, Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,11 +19,18 @@ type Vehicle = {
 };
 
 export function VehiclesClient({ initialVehicles, availableRoutes = [] }: { initialVehicles: Vehicle[], availableRoutes?: { id: string, name: string }[] }) {
+  const searchParams = useSearchParams();
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const [isPending, startTransition] = useTransition();
   const dialog = useAppDialog();
+
+  useEffect(() => {
+    if (searchParams.get("action") === "add") {
+      setIsOpen(true);
+    }
+  }, [searchParams]);
 
   const filteredVehicles = initialVehicles.filter(v =>
     v.registrationNumber.toLowerCase().includes(search.toLowerCase())

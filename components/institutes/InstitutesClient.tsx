@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { addInstitute, updateInstitute, deleteInstitute } from "@/app/actions";
 import { useAppDialog } from "@/components/ui/app-dialog";
+import Link from "next/link";
 
 type Institute = {
   id: string;
@@ -165,9 +166,17 @@ export function InstitutesClient({ initialInstitutes }: { initialInstitutes: Ins
                   <p className="text-[11px] text-slate-500 mt-1.5">
                     {institute._count.students} Students · {routeCount} Routes
                   </p>
-                  <span className="inline-block text-[10px] bg-green-50 text-green-600 px-2 py-0.5 rounded-full font-semibold mt-2">
-                    Active
-                  </span>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="inline-block text-[10px] bg-green-50 text-green-600 px-2 py-0.5 rounded-full font-semibold">
+                      Active
+                    </span>
+                    <Link
+                      href={`/students?institute=${institute.id}`}
+                      className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-0.5"
+                    >
+                      View Students →
+                    </Link>
+                  </div>
                 </div>
               </div>
             );

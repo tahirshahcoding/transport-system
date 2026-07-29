@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { StudentsClient } from "@/components/students/StudentsClient";
 
@@ -25,5 +26,9 @@ export default async function StudentsPage() {
     })
   ]);
 
-  return <StudentsClient initialStudents={students} availableRoutes={routes} availableInstitutes={institutes} availableVehicles={vehicles} />;
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-xs text-slate-400">Loading Students...</div>}>
+      <StudentsClient initialStudents={students} availableRoutes={routes} availableInstitutes={institutes} availableVehicles={vehicles} />
+    </Suspense>
+  );
 }

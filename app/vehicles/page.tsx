@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { VehiclesClient } from "@/components/vehicles/VehiclesClient";
 
@@ -16,5 +17,9 @@ export default async function VehiclesPage() {
     }),
   ]);
 
-  return <VehiclesClient initialVehicles={vehicles} availableRoutes={routes} />;
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-xs text-slate-400">Loading Vehicles...</div>}>
+      <VehiclesClient initialVehicles={vehicles} availableRoutes={routes} />
+    </Suspense>
+  );
 }

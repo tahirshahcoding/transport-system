@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
+import { useState, useTransition, useEffect } from "react";
 import { FileText, CreditCard, Printer, ArrowUpRight, CheckCircle, Loader2, MessageCircle, Send } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PrintableChallan } from "./PrintableChallan";
 import { PrintablePaymentReceipt } from "./PrintablePaymentReceipt";
 import { OverviewChart } from "@/components/dashboard/OverviewChart";
@@ -57,11 +60,22 @@ export function FinanceClient({
   totalCollection: number;
   totalPending: number;
 }) {
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<typeof tabs[number]>("Overview");
   const [selectedChallan, setSelectedChallan] = useState<Challan | null>(null);
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
+  const [paymentModalChallan, setPaymentModalChallan] = useState<Challan | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [isPending, startTransition] = useTransition();
   const dialog = useAppDialog();
+
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam && tabs.includes(tabParam as typeof tabs[number])) {
+      setActiveTab(tabParam as typeof tabs[number]);
+    }
+  }, [searchParams]);
 
   // Filters
   const [filterMonth, setFilterMonth] = useState("");
@@ -117,31 +131,33 @@ export function FinanceClient({
     window.open(url, "_blank");
   };
 
-  const handleReceivePayment = async (challanId: string, challan: Challan) => {
+  const openPaymentModal = (challan: Challan) => {
     const totalPaid = challan.payments.reduce((sum, p) => sum + p.amount, 0);
-    const totalDue = challan.amount + challan.arrears - totalPaid;
-    const input = await dialog.showPrompt(
-      "Receive Payment",
-      `Enter payment amount for ${challan.student.name}`,
-      "Enter amount in Rs",
-      totalDue.toString()
-    );
-    
-    if (input === null) return;
-    
-    const amount = parseFloat(input);
+    const remaining = challan.amount + challan.arrears - totalPaid;
+    setPaymentModalChallan(challan);
+    setPaymentAmount(remaining.toString());
+    setPaymentMethod("Cash");
+  };
+
+  const handleConfirmPayment = () => {
+    if (!paymentModalChallan) return;
+    const amount = parseFloat(paymentAmount);
+    const totalPaid = paymentModalChallan.payments.reduce((sum, p) => sum + p.amount, 0);
+    const remaining = paymentModalChallan.amount + paymentModalChallan.arrears - totalPaid;
+
     if (isNaN(amount) || amount <= 0) {
-      await dialog.showAlert("Invalid Amount", "Please enter a valid payment amount greater than zero.");
+      dialog.showAlert("Invalid Amount", "Please enter a valid amount greater than zero.");
       return;
     }
 
-    if (amount > totalDue) {
-      await dialog.showAlert("Amount Too High", `Payment of Rs ${amount} exceeds the remaining due of Rs ${totalDue}.`);
+    if (amount > remaining) {
+      dialog.showAlert("Amount Too High", `Payment of Rs ${amount} exceeds remaining due of Rs ${remaining}.`);
       return;
     }
 
     startTransition(async () => {
-      await receivePayment(challanId, amount, "Cash");
+      await receivePayment(paymentModalChallan.id, amount, paymentMethod);
+      setPaymentModalChallan(null);
     });
   };
 
@@ -370,7 +386,7 @@ export function FinanceClient({
                         {challan.status !== "PAID" && (
                           <Button 
                             size="sm" 
-                            onClick={() => handleReceivePayment(challan.id, challan)}
+                            onClick={() => openPaymentModal(challan)}
                             disabled={isPending}
                             className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] h-7 gap-1 px-2 disabled:opacity-50"
                           >
@@ -423,6 +439,59 @@ export function FinanceClient({
           </div>
         )}
       </div>
+
+      {/* Receive Payment Modal */}
+      <Dialog open={!!paymentModalChallan} onOpenChange={(open) => !open && setPaymentModalChallan(null)}>
+        <DialogContent className="sm:max-w-[400px] rounded-2xl border-slate-100 mx-4">
+          <DialogHeader>
+            <DialogTitle className="font-outfit text-lg">Record Payment</DialogTitle>
+          </DialogHeader>
+          {paymentModalChallan && (
+            <div className="space-y-4 pt-2">
+              <div className="bg-slate-50 p-3 rounded-xl">
+                <p className="font-bold text-sm text-slate-900">{paymentModalChallan.student.name}</p>
+                <p className="text-xs text-slate-500">
+                  Month: {paymentModalChallan.month} · Class {paymentModalChallan.student.class}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-600">Payment Amount (Rs)</label>
+                <Input
+                  type="number"
+                  value={paymentAmount}
+                  onChange={(e) => setPaymentAmount(e.target.value)}
+                  placeholder="Enter amount"
+                  className="rounded-xl bg-slate-50 border-slate-200 h-10"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-slate-600">Payment Method</label>
+                <select
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="w-full rounded-xl bg-slate-50 border-slate-200 h-10 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2"
+                >
+                  <option value="Cash">Cash</option>
+                  <option value="Bank Transfer">Bank Transfer</option>
+                  <option value="EasyPaisa">EasyPaisa</option>
+                  <option value="JazzCash">JazzCash</option>
+                  <option value="Cheque">Cheque</option>
+                </select>
+              </div>
+
+              <Button
+                onClick={handleConfirmPayment}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl h-10 font-semibold"
+                disabled={isPending}
+              >
+                {isPending ? "Recording..." : "Confirm & Save Payment"}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Print container */}
       <div className="hidden print:block absolute top-0 left-0">
