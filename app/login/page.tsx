@@ -21,8 +21,7 @@ export default function LoginPage() {
       if (res?.error) {
         setError(res.error);
       } else {
-        router.push("/");
-        router.refresh();
+        window.location.href = "/";
       }
     });
   };

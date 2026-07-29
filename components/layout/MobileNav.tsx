@@ -41,7 +41,9 @@ export function MobileNav() {
           return (
             <Sheet key={item.name} open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger className="flex flex-col items-center justify-center flex-1 h-full pt-2 pb-1 transition-colors text-slate-400">
-                <item.icon className="w-5 h-5 mb-1" />
+                <div className="w-5 h-5 relative mb-1 flex items-center justify-center">
+                  <Image src="/logo.png" alt="Logo" width={20} height={20} className="object-contain" />
+                </div>
                 <span className="text-[10px] font-medium text-slate-400">
                   {item.name}
                 </span>

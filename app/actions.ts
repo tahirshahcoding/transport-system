@@ -27,7 +27,7 @@ export async function loginUser(formData: FormData) {
 
   const cookieStore = await cookies();
   cookieStore.set("transport_session", "authenticated", {
-    httpOnly: true,
+    httpOnly: false,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
@@ -35,6 +35,11 @@ export async function loginUser(formData: FormData) {
   });
 
   return { success: true };
+}
+
+export async function checkSessionAction() {
+  const cookieStore = await cookies();
+  return cookieStore.get("transport_session")?.value === "authenticated";
 }
 
 export async function logoutUser() {
