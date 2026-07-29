@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
-export async function addStudent(data: { name: string; class: string; routeId?: string; instituteId?: string; vehicleId?: string }) {
+export async function addStudent(data: { name: string; fatherName: string; mobileNumber: string; class: string; routeId?: string; instituteId?: string; vehicleId?: string }) {
   // Find or create default institute if none provided
   let instituteId = data.instituteId;
   if (!instituteId) {
@@ -19,6 +19,8 @@ export async function addStudent(data: { name: string; class: string; routeId?: 
   await prisma.student.create({
     data: {
       name: data.name,
+      fatherName: data.fatherName,
+      mobileNumber: data.mobileNumber,
       class: data.class,
       instituteId: instituteId,
       routeId: data.routeId || null,
@@ -26,7 +28,6 @@ export async function addStudent(data: { name: string; class: string; routeId?: 
     }
   });
 
-  revalidatePath("/students");
   revalidatePath("/students");
   revalidatePath("/");
 }
@@ -189,13 +190,13 @@ export async function seedDatabase() {
 
   // Create Students
   const students = await Promise.all([
-    prisma.student.create({ data: { name: "Ali Khan", class: "7th", instituteId: institute.id, routeId: r1.id, vehicleId: v1.id } }),
-    prisma.student.create({ data: { name: "Ahmad Shah", class: "9th", instituteId: institute.id, routeId: r2.id, vehicleId: v2.id } }),
-    prisma.student.create({ data: { name: "Umar Farooq", class: "10th", instituteId: institute.id, routeId: r1.id, vehicleId: v4.id } }),
-    prisma.student.create({ data: { name: "Zainab Bibi", class: "5th", instituteId: institute.id, routeId: r2.id, vehicleId: v2.id } }),
-    prisma.student.create({ data: { name: "Hassan Ali", class: "8th", instituteId: institute.id, routeId: r3.id, vehicleId: v3.id } }),
-    prisma.student.create({ data: { name: "Sara Khan", class: "6th", instituteId: institute.id, routeId: r1.id, vehicleId: v1.id } }),
-    prisma.student.create({ data: { name: "Irfan Shah", class: "10th", instituteId: institute.id, routeId: r3.id, vehicleId: v3.id } }),
+    prisma.student.create({ data: { name: "Ali Khan", fatherName: "Mehboob Khan", mobileNumber: "923001234567", class: "7th", instituteId: institute.id, routeId: r1.id, vehicleId: v1.id } }),
+    prisma.student.create({ data: { name: "Ahmad Shah", fatherName: "Nawab Shah", mobileNumber: "923009876543", class: "9th", instituteId: institute.id, routeId: r2.id, vehicleId: v2.id } }),
+    prisma.student.create({ data: { name: "Umar Farooq", fatherName: "Farooq Ahmad", mobileNumber: "923451112233", class: "10th", instituteId: institute.id, routeId: r1.id, vehicleId: v4.id } }),
+    prisma.student.create({ data: { name: "Zainab Bibi", fatherName: "Abdul Karim", mobileNumber: "923331234567", class: "5th", instituteId: institute.id, routeId: r2.id, vehicleId: v2.id } }),
+    prisma.student.create({ data: { name: "Hassan Ali", fatherName: "Sher Ali", mobileNumber: "923124445566", class: "8th", instituteId: institute.id, routeId: r3.id, vehicleId: v3.id } }),
+    prisma.student.create({ data: { name: "Sara Khan", fatherName: "Rehman Khan", mobileNumber: "923007778899", class: "6th", instituteId: institute.id, routeId: r1.id, vehicleId: v1.id } }),
+    prisma.student.create({ data: { name: "Irfan Shah", fatherName: "Zahid Shah", mobileNumber: "923469990011", class: "10th", instituteId: institute.id, routeId: r3.id, vehicleId: v3.id } }),
   ]);
 
   // Generate Challans

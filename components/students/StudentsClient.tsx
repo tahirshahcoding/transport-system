@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Search, Plus, Users, Ban, CheckCircle, FileText, Filter } from "lucide-react";
+import { Search, Plus, Users, Ban, CheckCircle, FileText, Phone } from "lucide-react";
 import { addStudent, toggleStudentStatus, generateIndividualChallan } from "@/app/actions";
 
 type Student = {
   id: string;
   name: string;
+  fatherName: string;
+  mobileNumber: string;
   class: string;
   institute: { name: string };
   route: { name: string } | null;
@@ -58,13 +60,15 @@ export function StudentsClient({
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const name = formData.get("name") as string;
+    const fatherName = formData.get("fatherName") as string;
+    const mobileNumber = formData.get("mobileNumber") as string;
     const studentClass = formData.get("class") as string;
     const routeId = formData.get("routeId") as string;
     const instituteId = formData.get("instituteId") as string;
     const vehicleId = formData.get("vehicleId") as string;
 
     startTransition(async () => {
-      await addStudent({ name, class: studentClass, routeId: routeId || undefined, instituteId: instituteId || undefined, vehicleId: vehicleId || undefined });
+      await addStudent({ name, fatherName, mobileNumber, class: studentClass, routeId: routeId || undefined, instituteId: instituteId || undefined, vehicleId: vehicleId || undefined });
       setIsOpen(false);
       setSelectedRouteId("");
     });
@@ -87,6 +91,14 @@ export function StudentsClient({
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-xs font-semibold text-slate-600">Full Name</Label>
                 <Input id="name" name="name" placeholder="E.g. Ali Khan" required className="rounded-xl bg-slate-50 border-slate-200 h-10" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="fatherName" className="text-xs font-semibold text-slate-600">Father&apos;s Name</Label>
+                <Input id="fatherName" name="fatherName" placeholder="E.g. Mehboob Khan" required className="rounded-xl bg-slate-50 border-slate-200 h-10" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="mobileNumber" className="text-xs font-semibold text-slate-600">Mobile Number (WhatsApp)</Label>
+                <Input id="mobileNumber" name="mobileNumber" type="tel" placeholder="E.g. 923001234567" required className="rounded-xl bg-slate-50 border-slate-200 h-10" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="class" className="text-xs font-semibold text-slate-600">Class / Grade</Label>
@@ -203,8 +215,13 @@ export function StudentsClient({
                   <div>
                     <p className="font-bold text-sm text-slate-900">{student.name}</p>
                     <p className="text-[11px] text-slate-400 mt-0.5">
-                      Class {student.class} · {student.institute.name}
+                      S/O {student.fatherName || "—"} · Class {student.class} · {student.institute.name}
                     </p>
+                    {student.mobileNumber && (
+                      <p className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1">
+                        <Phone className="w-3 h-3" /> {student.mobileNumber}
+                      </p>
+                    )}
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
                       <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-medium">
                         Route: {student.route?.name || "None"}

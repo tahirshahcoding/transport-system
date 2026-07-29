@@ -168,6 +168,8 @@ export type RouteScalarFieldEnum = (typeof RouteScalarFieldEnum)[keyof typeof Ro
 export const StudentScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  fatherName: 'fatherName',
+  mobileNumber: 'mobileNumber',
   class: 'class',
   instituteId: 'instituteId',
   routeId: 'routeId',

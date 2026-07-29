@@ -9,6 +9,8 @@ export default async function FinancePage() {
         student: {
           select: {
             name: true,
+            fatherName: true,
+            mobileNumber: true,
             class: true,
             route: { select: { name: true } },
           },

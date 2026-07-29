@@ -81,18 +81,20 @@ model Route {
 }
 
 model Student {
-  id          String    @id @default(cuid())
-  name        String
-  class       String
-  instituteId String
-  institute   Institute @relation(fields: [instituteId], references: [id])
-  routeId     String?
-  route       Route?    @relation(fields: [routeId], references: [id])
-  vehicleId   String?
-  vehicle     Vehicle?  @relation(fields: [vehicleId], references: [id])
-  status      String    @default("ACTIVE")
-  challans    Challan[]
-  payments    Payment[]
+  id           String    @id @default(cuid())
+  name         String
+  fatherName   String    @default("")
+  mobileNumber String    @default("")
+  class        String
+  instituteId  String
+  institute    Institute @relation(fields: [instituteId], references: [id])
+  routeId      String?
+  route        Route?    @relation(fields: [routeId], references: [id])
+  vehicleId    String?
+  vehicle      Vehicle?  @relation(fields: [vehicleId], references: [id])
+  status       String    @default("ACTIVE")
+  challans     Challan[]
+  payments     Payment[]
 }
 
 model Challan {

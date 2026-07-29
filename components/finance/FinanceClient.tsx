@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { FileText, CreditCard, Printer, ArrowUpRight, CheckCircle, Loader2 } from "lucide-react";
+import { FileText, CreditCard, Printer, ArrowUpRight, CheckCircle, Loader2, MessageCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PrintableChallan } from "./PrintableChallan";
@@ -19,6 +19,8 @@ type Challan = {
   status: string;
   student: {
     name: string;
+    fatherName: string;
+    mobileNumber: string;
     class: string;
     route: { name: string } | null;
   };
@@ -74,6 +76,13 @@ export function FinanceClient({
         alert("Challans generated successfully.");
       });
     }
+  };
+
+  const handleWhatsAppReminder = (challan: Challan) => {
+    const totalDue = challan.amount + challan.arrears;
+    const message = `Assalam o Alaikum ${challan.student.fatherName || challan.student.name},\n\nThis is a fee reminder from the Transport Department.\n\nStudent: ${challan.student.name}\nClass: ${challan.student.class}\nMonth: ${challan.month}\nAmount Due: Rs ${totalDue.toLocaleString()}\n\nPlease clear the pending dues at your earliest convenience. JazakAllah.`;
+    const url = `https://wa.me/${challan.student.mobileNumber}?text=${encodeURIComponent(message)}`;
+    window.open(url, "_blank");
   };
 
   const handleReceivePayment = (challanId: string, fullAmount: number, arrears: number) => {
@@ -230,6 +239,16 @@ export function FinanceClient({
                       <Button variant="outline" size="sm" onClick={() => handlePrintChallan(challan)} className="rounded-lg border-slate-200 text-[10px] h-7 gap-1 px-2">
                         <Printer className="w-3 h-3" /> Print
                       </Button>
+                      {challan.student.mobileNumber && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleWhatsAppReminder(challan)}
+                          className="rounded-lg border-green-200 bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700 text-[10px] h-7 gap-1 px-2"
+                        >
+                          <MessageCircle className="w-3 h-3" /> WhatsApp
+                        </Button>
+                      )}
                       <Button 
                         size="sm" 
                         onClick={() => handleReceivePayment(challan.id, challan.amount, challan.arrears)}
