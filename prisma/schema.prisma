@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean
+  image         String?
+  createdAt     DateTime
+  updatedAt     DateTime
+  sessions      Session[]
+  accounts      Account[]
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime
+  updatedAt  DateTime
+}
+
+model Institute {
+  id       String    @id @default(cuid())
+  name     String
+  students Student[]
+}
+
+model Vehicle {
+  id                 String  @id @default(cuid())
+  registrationNumber String
+  capacity           Int?
+  routes             Route[]
+}
+
+model Route {
+  id        String    @id @default(cuid())
+  name      String
+  feeAmount Float
+  vehicleId String?
+  vehicle   Vehicle?  @relation(fields: [vehicleId], references: [id])
+  students  Student[]
+}
+
+model Student {
+  id          String    @id @default(cuid())
+  name        String
+  class       String
+  instituteId String
+  institute   Institute @relation(fields: [instituteId], references: [id])
+  routeId     String?
+  route       Route?    @relation(fields: [routeId], references: [id])
+  status      String    @default("ACTIVE")
+  challans    Challan[]
+  payments    Payment[]
+}
+
+model Challan {
+  id        String    @id @default(cuid())
+  studentId String
+  student   Student   @relation(fields: [studentId], references: [id])
+  month     String
+  amount    Float
+  arrears   Float     @default(0)
+  dueDate   DateTime?
+  status    String    @default("UNPAID")
+  payments  Payment[]
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id])
+  challanId String
+  challan   Challan  @relation(fields: [challanId], references: [id])
+  amount    Float
+  method    String   @default("Cash")
+  date      DateTime @default(now())
+}
+
+model Settings {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
