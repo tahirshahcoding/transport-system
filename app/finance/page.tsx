@@ -13,7 +13,6 @@ export default async function FinancePage() {
             route: { select: { name: true } },
           },
         },
-        arrears: true,
       },
       orderBy: { id: "desc" },
     }),
