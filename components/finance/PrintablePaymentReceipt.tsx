@@ -21,10 +21,12 @@ export function PrintablePaymentReceipt({
 }) {
   return (
     <div className="w-[58mm] bg-white text-black p-4 font-sans text-xs">
-      <div className="text-center mb-4 border-b border-black pb-2">
-        <h1 className="font-bold text-lg mb-1">ABC Transport</h1>
+      <div className="text-center mb-4 border-b border-black pb-2 flex flex-col items-center">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain mb-1" />
+        <h1 className="font-bold text-lg mb-0.5">ABC Transport</h1>
         <p className="text-[10px]">Payment Receipt</p>
-        <p className="text-[10px] mt-1">{date}</p>
+        <p className="text-[10px] mt-0.5">{date}</p>
       </div>
 
       <div className="space-y-1 mb-4">

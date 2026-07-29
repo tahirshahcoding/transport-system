@@ -24,7 +24,11 @@ export const PrintableChallan = forwardRef<HTMLDivElement, ChallanProps>(
           "border border-slate-200 print:border-none rounded-md print:rounded-none"
         )}
       >
-        <div className="text-center font-bold mb-2 text-sm">{instituteName}</div>
+        <div className="flex flex-col items-center mb-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain mb-1" />
+          <div className="text-center font-bold text-sm">{instituteName}</div>
+        </div>
         <div className="text-center mb-2">Transport Fee Challan</div>
         
         <div className="border-t border-dashed border-black my-2"></div>

@@ -2,6 +2,82 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+
+export async function getAdminCredentials() {
+  const usernameSetting = await prisma.settings.findUnique({ where: { key: "admin_username" } });
+  const passwordSetting = await prisma.settings.findUnique({ where: { key: "admin_password" } });
+
+  return {
+    username: usernameSetting?.value || "admin",
+    password: passwordSetting?.value || "admin123",
+  };
+}
+
+export async function loginUser(formData: FormData) {
+  const username = formData.get("username") as string;
+  const password = formData.get("password") as string;
+
+  const creds = await getAdminCredentials();
+
+  if (username !== creds.username || password !== creds.password) {
+    return { error: "Invalid username or password" };
+  }
+
+  const cookieStore = await cookies();
+  cookieStore.set("transport_session", "authenticated", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 30, // 30 days
+  });
+
+  return { success: true };
+}
+
+export async function logoutUser() {
+  const cookieStore = await cookies();
+  cookieStore.delete("transport_session");
+  redirect("/login");
+}
+
+export async function updateUsername(newUsername: string) {
+  if (!newUsername || newUsername.trim().length < 3) {
+    throw new Error("Username must be at least 3 characters long.");
+  }
+
+  await prisma.settings.upsert({
+    where: { key: "admin_username" },
+    update: { value: newUsername.trim() },
+    create: { key: "admin_username", value: newUsername.trim() },
+  });
+
+  revalidatePath("/settings");
+  return { success: true };
+}
+
+export async function updatePassword(currentPassword: string, newPassword: string) {
+  const creds = await getAdminCredentials();
+
+  if (currentPassword !== creds.password) {
+    throw new Error("Current password is incorrect.");
+  }
+
+  if (!newPassword || newPassword.length < 4) {
+    throw new Error("New password must be at least 4 characters long.");
+  }
+
+  await prisma.settings.upsert({
+    where: { key: "admin_password" },
+    update: { value: newPassword },
+    create: { key: "admin_password", value: newPassword },
+  });
+
+  revalidatePath("/settings");
+  return { success: true };
+}
 
 export async function addStudent(data: { name: string; fatherName: string; mobileNumber: string; class: string; routeId?: string; instituteId?: string; vehicleId?: string }) {
   // Find or create default institute if none provided

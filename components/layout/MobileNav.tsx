@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Home, Building2, Users, CreditCard, MoreHorizontal, Bus, Map, Settings } from "lucide-react";
+import { Home, Building2, Users, CreditCard, MoreHorizontal, Bus, Map, Settings, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { logoutUser } from "@/app/actions";
 
 const mobileNavItems = [
   { name: "Dashboard", href: "/", icon: Home },
@@ -24,6 +26,13 @@ const extraItems = [
 export function MobileNav() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const handleLogout = () => {
+    startTransition(async () => {
+      await logoutUser();
+    });
+  };
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex justify-around items-center h-[68px] z-50 safe-area-bottom">
@@ -38,10 +47,11 @@ export function MobileNav() {
                 </span>
               </SheetTrigger>
               <SheetContent side="bottom" className="rounded-t-2xl px-4 pb-8" showCloseButton={false}>
-                <SheetHeader className="mb-4">
-                  <SheetTitle className="text-left font-outfit">More Options</SheetTitle>
+                <SheetHeader className="mb-4 flex flex-row items-center gap-3 space-y-0">
+                  <Image src="/logo.png" alt="Logo" width={28} height={28} className="object-contain" />
+                  <SheetTitle className="text-left font-outfit text-base">More Options</SheetTitle>
                 </SheetHeader>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-3 gap-3 mb-4">
                   {extraItems.map((extra) => (
                     <Link
                       key={extra.name}
@@ -54,6 +64,14 @@ export function MobileNav() {
                     </Link>
                   ))}
                 </div>
+                <button
+                  onClick={handleLogout}
+                  disabled={isPending}
+                  className="w-full flex items-center justify-center gap-2 h-11 bg-red-50 text-red-600 rounded-2xl text-xs font-bold hover:bg-red-100 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  {isPending ? "Signing Out..." : "Sign Out"}
+                </button>
               </SheetContent>
             </Sheet>
           );
