@@ -46,8 +46,8 @@ export function StudentsClient({ initialStudents, availableRoutes = [], availabl
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-lg font-bold font-outfit text-slate-900">Students</h2>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger className="bg-blue-600 text-white p-2 rounded-xl shadow-sm">
-            <Plus className="w-5 h-5" />
+          <DialogTrigger className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl shadow-sm flex items-center gap-2 text-sm font-semibold transition-colors">
+            <Plus className="w-4 h-4" /> Add Student
           </DialogTrigger>
           <DialogContent className="sm:max-w-[400px] rounded-2xl border-slate-100 mx-4">
             <DialogHeader>
