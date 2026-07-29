@@ -28,11 +28,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/50 to-indigo-50/30 flex items-center justify-center p-4">
       {/* Background ambient glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl border border-slate-100/20">
+      <div className="relative w-full max-w-md bg-white/90 backdrop-blur-xl rounded-3xl p-8 shadow-xl shadow-slate-200/50 border border-slate-200/60">
         {/* Logo & Header */}
         <div className="flex flex-col items-center text-center mb-8">
           <div className="w-20 h-20 relative mb-4 flex items-center justify-center bg-slate-50 rounded-2xl p-2 shadow-inner border border-slate-100">

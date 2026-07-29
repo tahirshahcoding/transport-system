@@ -1,7 +1,26 @@
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { MobileNav } from "./MobileNav";
 
-export function AppLayout({ children }: { children: React.ReactNode }) {
+export async function AppLayout({ children }: { children: React.ReactNode }) {
+  const headerList = await headers();
+  const pathname = headerList.get("x-current-path") || headerList.get("next-url") || "";
+
+  // If on login page, render children directly without app layout
+  if (pathname === "/login") {
+    return <>{children}</>;
+  }
+
+  const cookieStore = await cookies();
+  const session = cookieStore.get("transport_session")?.value;
+  const isAuthenticated = session === "authenticated";
+
+  // Redirect to login if unauthenticated on protected routes
+  if (!isAuthenticated) {
+    redirect("/login");
+  }
+
   return (
     <div className="flex min-h-screen bg-[#f8f9fb] font-sans text-slate-900">
       <Sidebar />
