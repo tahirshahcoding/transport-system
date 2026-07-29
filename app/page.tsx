@@ -35,7 +35,7 @@ export default async function Dashboard() {
     <div className="px-4 pt-4 pb-4 max-w-lg mx-auto md:max-w-5xl md:px-8 md:pt-8">
       {/* Top Bar */}
       <div className="flex items-center justify-between mb-5 md:hidden">
-        <Menu className="w-6 h-6 text-slate-700" />
+        <div className="w-6 h-6" /> {/* Placeholder to keep Dashboard text centered */}
         <span className="text-base font-bold font-outfit text-slate-900">Dashboard</span>
         <div className="relative">
           <Bell className="w-6 h-6 text-slate-700" />
