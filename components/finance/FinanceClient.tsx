@@ -9,6 +9,7 @@ import { PrintablePaymentReceipt } from "./PrintablePaymentReceipt";
 import { OverviewChart } from "@/components/dashboard/OverviewChart";
 import { cn } from "@/lib/utils";
 import { generateChallans, receivePayment } from "@/app/actions";
+import { useAppDialog } from "@/components/ui/app-dialog";
 
 type Challan = {
   id: string;
@@ -60,6 +61,7 @@ export function FinanceClient({
   const [selectedChallan, setSelectedChallan] = useState<Challan | null>(null);
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [isPending, startTransition] = useTransition();
+  const dialog = useAppDialog();
 
   // Filters
   const [filterMonth, setFilterMonth] = useState("");
@@ -85,18 +87,26 @@ export function FinanceClient({
     setTimeout(() => window.print(), 100);
   };
 
-  const handleGenerateChallans = () => {
-    if (confirm("Generate new challans for all assigned students for next month? Duplicate challans will be skipped automatically.")) {
+  const handleGenerateChallans = async () => {
+    const confirmed = await dialog.showConfirm(
+      "Generate Challans",
+      "Generate new challans for all assigned students? Duplicates will be skipped automatically."
+    );
+    if (confirmed) {
       startTransition(async () => {
         await generateChallans();
       });
     }
   };
 
-  const handleWhatsAppReminder = (challan: Challan) => {
+  const handleWhatsAppReminder = async (challan: Challan) => {
     let phone = challan.student.mobileNumber;
     if (!phone) {
-      const input = prompt("This student has no mobile number saved. Enter a WhatsApp number (e.g. 923001234567):");
+      const input = await dialog.showPrompt(
+        "Enter WhatsApp Number",
+        "This student has no mobile number saved.",
+        "E.g. 923001234567"
+      );
       if (!input) return;
       phone = input.trim();
     }
@@ -107,21 +117,26 @@ export function FinanceClient({
     window.open(url, "_blank");
   };
 
-  const handleReceivePayment = (challanId: string, challan: Challan) => {
+  const handleReceivePayment = async (challanId: string, challan: Challan) => {
     const totalPaid = challan.payments.reduce((sum, p) => sum + p.amount, 0);
     const totalDue = challan.amount + challan.arrears - totalPaid;
-    const input = prompt(`Enter payment amount (Remaining Due: Rs ${totalDue})`, totalDue.toString());
+    const input = await dialog.showPrompt(
+      "Receive Payment",
+      `Enter payment amount for ${challan.student.name}`,
+      "Enter amount in Rs",
+      totalDue.toString()
+    );
     
     if (input === null) return;
     
     const amount = parseFloat(input);
     if (isNaN(amount) || amount <= 0) {
-      alert("Invalid amount entered.");
+      await dialog.showAlert("Invalid Amount", "Please enter a valid payment amount greater than zero.");
       return;
     }
 
     if (amount > totalDue) {
-      alert(`Amount exceeds the remaining due of Rs ${totalDue}.`);
+      await dialog.showAlert("Amount Too High", `Payment of Rs ${amount} exceeds the remaining due of Rs ${totalDue}.`);
       return;
     }
 

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { addVehicle, deleteVehicle } from "@/app/actions";
+import { useAppDialog } from "@/components/ui/app-dialog";
 
 type Vehicle = {
   id: string;
@@ -20,6 +21,7 @@ export function VehiclesClient({ initialVehicles, availableRoutes = [] }: { init
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const dialog = useAppDialog();
 
   const filteredVehicles = initialVehicles.filter(v =>
     v.registrationNumber.toLowerCase().includes(search.toLowerCase())
@@ -123,8 +125,12 @@ export function VehiclesClient({ initialVehicles, availableRoutes = [] }: { init
                     </p>
                   </div>
                   <button 
-                    onClick={() => {
-                      if (confirm("Are you sure you want to delete this vehicle? Any students assigned to it will have their vehicle set to None.")) {
+                    onClick={async () => {
+                      const confirmed = await dialog.showConfirm(
+                        "Delete Vehicle",
+                        `Are you sure you want to delete ${vehicle.registrationNumber}? Students assigned to it will be unassigned.`
+                      );
+                      if (confirmed) {
                         startTransition(() => deleteVehicle(vehicle.id));
                       }
                     }}

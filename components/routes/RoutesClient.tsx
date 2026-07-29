@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { addRoute, deleteRoute } from "@/app/actions";
+import { useAppDialog } from "@/components/ui/app-dialog";
 
 type Route = {
   id: string;
@@ -19,6 +20,7 @@ export function RoutesClient({ initialRoutes }: { initialRoutes: Route[] }) {
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const dialog = useAppDialog();
 
   const filteredRoutes = initialRoutes.filter(r =>
     r.name.toLowerCase().includes(search.toLowerCase())
@@ -106,8 +108,12 @@ export function RoutesClient({ initialRoutes }: { initialRoutes: Route[] }) {
                     </p>
                   </div>
                   <button 
-                    onClick={() => {
-                      if (confirm("Are you sure you want to delete this route? Students will be unassigned from this route.")) {
+                    onClick={async () => {
+                      const confirmed = await dialog.showConfirm(
+                        "Delete Route",
+                        `Are you sure you want to delete "${route.name}"? Students and vehicles will be unassigned.`
+                      );
+                      if (confirmed) {
                         startTransition(() => deleteRoute(route.id));
                       }
                     }}

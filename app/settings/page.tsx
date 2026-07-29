@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { seedDatabase } from "@/app/actions";
 import { Database, AlertTriangle, ChevronRight, User, Bell, Shield, HelpCircle } from "lucide-react";
+import { useAppDialog } from "@/components/ui/app-dialog";
 
 const menuItems = [
   { name: "Profile", icon: User, desc: "Manage your account" },
@@ -14,12 +15,17 @@ const menuItems = [
 
 export default function SettingsPage() {
   const [isPending, startTransition] = useTransition();
+  const dialog = useAppDialog();
 
-  const handleSeed = () => {
-    if (confirm("This will inject dummy students, routes, vehicles, and challans into the database. Continue?")) {
+  const handleSeed = async () => {
+    const confirmed = await dialog.showConfirm(
+      "Inject Dummy Data",
+      "This will populate the database with dummy students, routes, vehicles, and challans. Continue?"
+    );
+    if (confirmed) {
       startTransition(async () => {
         await seedDatabase();
-        alert("Database seeded successfully! Go check the Dashboard.");
+        await dialog.showSuccess("Data Injected", "Database seeded successfully! Go check the Dashboard.");
       });
     }
   };
