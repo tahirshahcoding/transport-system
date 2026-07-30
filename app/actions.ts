@@ -154,7 +154,7 @@ export async function toggleStudentStatus(studentId: string, currentStatus: stri
   revalidatePath("/");
 }
 
-export async function generateIndividualChallan(studentId: string) {
+export async function generateIndividualChallan(studentId: string, targetMonth?: string) {
   const student = await prisma.student.findUnique({
     where: { id: studentId },
     include: { route: true }
@@ -162,11 +162,20 @@ export async function generateIndividualChallan(studentId: string) {
 
   if (!student || !student.route) throw new Error("Student not found or has no assigned route");
 
-  const nextMonth = new Date();
-  nextMonth.setMonth(nextMonth.getMonth() + 1);
-  const monthName = nextMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
-  const dueDate = new Date();
-  dueDate.setDate(dueDate.getDate() + 15);
+  const now = new Date();
+  const monthName = targetMonth || now.toLocaleString('default', { month: 'long', year: 'numeric' });
+  
+  let dueDate = new Date(now.getFullYear(), now.getMonth() + 1, 15);
+  if (targetMonth) {
+    const parts = targetMonth.split(" ");
+    if (parts.length === 2) {
+      const mIndex = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].indexOf(parts[0]);
+      const yearNum = parseInt(parts[1], 10);
+      if (mIndex !== -1 && !isNaN(yearNum)) {
+        dueDate = new Date(yearNum, mIndex, 15);
+      }
+    }
+  }
 
   const existing = await prisma.challan.findFirst({
     where: { studentId: student.id, month: monthName }
@@ -551,4 +560,15 @@ export async function receivePayment(challanId: string, amount: number, method: 
 
   revalidatePath("/");
   revalidatePath("/finance");
+}
+
+export async function deleteChallan(id: string) {
+  await prisma.$transaction(async (tx) => {
+    await tx.payment.deleteMany({ where: { challanId: id } });
+    await tx.challan.delete({ where: { id } });
+  });
+
+  revalidatePath("/");
+  revalidatePath("/finance");
+  revalidatePath("/students");
 }

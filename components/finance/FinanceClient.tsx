@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useState, useTransition, useEffect } from "react";
-import { FileText, CreditCard, Printer, ArrowUpRight, CheckCircle, Loader2, MessageCircle, Send, Calendar, Search } from "lucide-react";
+import { FileText, CreditCard, Printer, ArrowUpRight, CheckCircle, Loader2, MessageCircle, Send, Calendar, Search, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import { PrintableChallan } from "./PrintableChallan";
 import { PrintablePaymentReceipt } from "./PrintablePaymentReceipt";
 import { OverviewChart } from "@/components/dashboard/OverviewChart";
 import { cn } from "@/lib/utils";
-import { generateChallans, receivePayment } from "@/app/actions";
+import { generateChallans, receivePayment, deleteChallan } from "@/app/actions";
 import { useAppDialog } from "@/components/ui/app-dialog";
 
 type Challan = {
@@ -69,8 +69,26 @@ export function FinanceClient({
   const [paymentModalChallan, setPaymentModalChallan] = useState<Challan | null>(null);
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("Cash");
+  const [pendingChallanId, setPendingChallanId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const dialog = useAppDialog();
+
+  const handleDeleteChallan = async (challan: Challan) => {
+    const confirmed = await dialog.showConfirm(
+      "Delete Fee Challan",
+      `Are you sure you want to delete this challan for ${challan.student.name} (${challan.month})? All recorded payments for it will also be deleted.`
+    );
+    if (confirmed) {
+      setPendingChallanId(challan.id);
+      startTransition(async () => {
+        try {
+          await deleteChallan(challan.id);
+        } finally {
+          setPendingChallanId(null);
+        }
+      });
+    }
+  };
 
   useEffect(() => {
     const tabParam = searchParams.get("tab");
@@ -497,6 +515,16 @@ export function FinanceClient({
                                     Receive
                                   </Button>
                                 )}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleDeleteChallan(challan)}
+                                  disabled={pendingChallanId === challan.id}
+                                  title="Delete Challan"
+                                  className="rounded-lg border-red-200 bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-700 text-[10px] h-7 px-2 disabled:opacity-50"
+                                >
+                                  {pendingChallanId === challan.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                                </Button>
                               </div>
                             </div>
                           </div>

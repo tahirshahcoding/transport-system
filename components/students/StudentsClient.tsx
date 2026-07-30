@@ -6,9 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Search, Pencil, Trash2, Users, FileText, Ban, CheckCircle, Phone, Send, Loader2 } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Users, FileText, Ban, CheckCircle, Phone, Send, Loader2, Calendar } from "lucide-react";
 import { addStudent, updateStudent, deleteStudent, toggleStudentStatus, generateIndividualChallan } from "@/app/actions";
 import { useAppDialog } from "@/components/ui/app-dialog";
+
+const MONTHS_LIST = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
 
 type Student = {
   id: string;
@@ -48,6 +53,12 @@ export function StudentsClient({
   const [selectedRouteId, setSelectedRouteId] = useState("");
   const [editSelectedRouteId, setEditSelectedRouteId] = useState("");
   const [pendingStudentId, setPendingStudentId] = useState<string | null>(null);
+  
+  // Bill Modal State
+  const now = new Date();
+  const [billModalStudent, setBillModalStudent] = useState<Student | null>(null);
+  const [billMonth, setBillMonth] = useState<string>(now.toLocaleString('default', { month: 'long' }));
+  const [billYear, setBillYear] = useState<string>(now.getFullYear().toString());
   
   const [isPending, startTransition] = useTransition();
   const dialog = useAppDialog();
@@ -420,25 +431,10 @@ export function StudentsClient({
                     <div className="flex gap-1.5 flex-wrap justify-end">
                       {student.route && student.status === "ACTIVE" && (
                         <button 
-                          onClick={() => {
-                            setPendingStudentId(student.id);
-                            startTransition(async () => {
-                              try {
-                                const res = await generateIndividualChallan(student.id);
-                                if (res.created) {
-                                  await dialog.showSuccess("Challan Created", `Fee challan created for ${student.name} for ${res.month}.`);
-                                } else {
-                                  await dialog.showSuccess("Notice", res.message || `Challan for ${student.name} already exists.`);
-                                }
-                              } finally {
-                                setPendingStudentId(null);
-                              }
-                            });
-                          }}
-                          disabled={pendingStudentId === student.id}
-                          className="text-[10px] flex items-center gap-1 bg-blue-50 text-blue-600 px-2 py-1 rounded-lg font-semibold hover:bg-blue-100 transition-colors disabled:opacity-50"
+                          onClick={() => setBillModalStudent(student)}
+                          className="text-[10px] flex items-center gap-1 bg-blue-50 text-blue-600 px-2 py-1 rounded-lg font-semibold hover:bg-blue-100 transition-colors"
                         >
-                          {pendingStudentId === student.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <FileText className="w-3 h-3" />} Bill
+                          <FileText className="w-3 h-3" /> Bill
                         </button>
                       )}
                       <button 
@@ -495,6 +491,82 @@ export function StudentsClient({
           ))}
         </div>
       )}
+
+      {/* Bill Student Month Selection Modal */}
+      <Dialog open={!!billModalStudent} onOpenChange={(open) => !open && setBillModalStudent(null)}>
+        <DialogContent className="sm:max-w-[420px] rounded-3xl border-slate-100 p-6">
+          <DialogHeader className="mb-2">
+            <DialogTitle className="font-outfit text-lg flex items-center gap-2 text-slate-900">
+              <Calendar className="w-5 h-5 text-blue-600" />
+              Select Month for Challan
+            </DialogTitle>
+          </DialogHeader>
+
+          {billModalStudent && (
+            <div className="space-y-4 py-2">
+              <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                <p className="font-bold text-sm text-slate-900">{billModalStudent.name}</p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Class {billModalStudent.class} · Route: {billModalStudent.route?.name || "None"}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-slate-700">Month</Label>
+                  <select
+                    className="w-full rounded-xl bg-slate-50 border border-slate-200 h-10 px-3 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    value={billMonth}
+                    onChange={(e) => setBillMonth(e.target.value)}
+                  >
+                    {MONTHS_LIST.map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-slate-700">Year</Label>
+                  <select
+                    className="w-full rounded-xl bg-slate-50 border border-slate-200 h-10 px-3 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    value={billYear}
+                    onChange={(e) => setBillYear(e.target.value)}
+                  >
+                    {["2025", "2026", "2027", "2028"].map((y) => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <Button
+                onClick={() => {
+                  const targetMonthStr = `${billMonth} ${billYear}`;
+                  const currentStudent = billModalStudent;
+                  setBillModalStudent(null);
+
+                  startTransition(async () => {
+                    try {
+                      const res = await generateIndividualChallan(currentStudent.id, targetMonthStr);
+                      if (res.created) {
+                        await dialog.showSuccess("Challan Created", `Fee challan created for ${currentStudent.name} for ${targetMonthStr}.`);
+                      } else {
+                        await dialog.showSuccess("Notice", res.message || `Challan for ${targetMonthStr} already exists.`);
+                      }
+                    } catch (err: any) {
+                      await dialog.showAlert("Error", err.message || "Failed to generate challan.");
+                    }
+                  });
+                }}
+                disabled={isPending}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-10 font-semibold shadow-md shadow-blue-600/20"
+              >
+                {isPending ? "Generating..." : `Generate Challan for ${billMonth} ${billYear}`}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
