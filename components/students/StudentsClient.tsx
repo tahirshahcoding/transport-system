@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Search, Plus, Users, Ban, CheckCircle, FileText, Phone, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Users, FileText, Ban, CheckCircle, Phone, Send } from "lucide-react";
 import { addStudent, updateStudent, deleteStudent, toggleStudentStatus, generateIndividualChallan } from "@/app/actions";
 import { useAppDialog } from "@/components/ui/app-dialog";
 
@@ -297,15 +297,31 @@ export function StudentsClient({
 
       {/* Filters */}
       <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-5 space-y-3">
-        <div className="relative">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-          <Input
-            type="search"
-            placeholder="Search students by name..."
-            className="pl-9 bg-slate-50 border-transparent rounded-xl h-10 text-sm shadow-none focus-visible:ring-slate-200"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+            <Input
+              type="search"
+              placeholder="Search students by name..."
+              className="pl-9 bg-slate-50 border-transparent rounded-xl h-10 text-sm shadow-none focus-visible:ring-slate-200"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          {(search || filterInstitute || filterRoute || filterVehicle || filterStatus) && (
+            <button
+              onClick={() => {
+                setSearch("");
+                setFilterInstitute("");
+                setFilterRoute("");
+                setFilterVehicle("");
+                setFilterStatus("");
+              }}
+              className="text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 px-3 h-10 rounded-xl transition-colors shrink-0"
+            >
+              Reset
+            </button>
+          )}
         </div>
         <div className="grid grid-cols-4 gap-2">
           <select 
@@ -368,9 +384,20 @@ export function StudentsClient({
                       S/O {student.fatherName || "—"} · Class {student.class} · {student.institute.name}
                     </p>
                     {student.mobileNumber && (
-                      <p className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1">
-                        <Phone className="w-3 h-3" /> {student.mobileNumber}
-                      </p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-[11px] text-slate-400 flex items-center gap-1">
+                          <Phone className="w-3 h-3 text-slate-400" /> {student.mobileNumber}
+                        </p>
+                        <a
+                          href={`https://wa.me/${student.mobileNumber}?text=${encodeURIComponent(`Assalam o Alaikum ${student.fatherName || student.name},\n\nGreeting from Transport Department regarding student ${student.name}.`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Chat on WhatsApp"
+                          className="inline-flex items-center gap-1 text-[9px] font-bold bg-green-50 text-green-600 hover:bg-green-100 px-1.5 py-0.5 rounded transition-colors"
+                        >
+                          <Send className="w-2.5 h-2.5" /> WhatsApp
+                        </a>
+                      </div>
                     )}
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
                       <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-medium">

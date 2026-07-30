@@ -230,20 +230,34 @@ export function FinanceClient({
 
       {/* Tabs */}
       <div className="flex gap-0 border-b border-slate-200 mb-5 print:hidden">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={cn(
-              "flex-1 text-xs font-semibold py-3 text-center transition-colors border-b-2",
-              activeTab === tab
-                ? "text-blue-600 border-blue-600"
-                : "text-slate-400 border-transparent hover:text-slate-600"
-            )}
-          >
-            {tab}
-          </button>
-        ))}
+        {tabs.map((tab) => {
+          let badgeCount = null;
+          if (tab === "Challans") badgeCount = allChallans.length;
+          if (tab === "Payments") badgeCount = allPayments.length;
+
+          return (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={cn(
+                "flex-1 text-xs font-semibold py-3 text-center transition-colors border-b-2 flex items-center justify-center gap-1.5",
+                activeTab === tab
+                  ? "text-blue-600 border-blue-600"
+                  : "text-slate-400 border-transparent hover:text-slate-600"
+              )}
+            >
+              <span>{tab}</span>
+              {badgeCount !== null && (
+                <span className={cn(
+                  "text-[9px] px-1.5 py-0.2 rounded-full font-bold",
+                  activeTab === tab ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-500"
+                )}>
+                  {badgeCount}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Tab Content */}
