@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Search, Pencil, Trash2, Users, FileText, Ban, CheckCircle, Phone, Send } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Users, FileText, Ban, CheckCircle, Phone, Send, Loader2 } from "lucide-react";
 import { addStudent, updateStudent, deleteStudent, toggleStudentStatus, generateIndividualChallan } from "@/app/actions";
 import { useAppDialog } from "@/components/ui/app-dialog";
 
@@ -47,6 +47,7 @@ export function StudentsClient({
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [selectedRouteId, setSelectedRouteId] = useState("");
   const [editSelectedRouteId, setEditSelectedRouteId] = useState("");
+  const [pendingStudentId, setPendingStudentId] = useState<string | null>(null);
   
   const [isPending, startTransition] = useTransition();
   const dialog = useAppDialog();
@@ -129,8 +130,13 @@ export function StudentsClient({
       `Are you sure you want to delete "${student.name}"? All associated challans and payments will also be deleted.`
     );
     if (confirmed) {
+      setPendingStudentId(student.id);
       startTransition(async () => {
-        await deleteStudent(student.id);
+        try {
+          await deleteStudent(student.id);
+        } finally {
+          setPendingStudentId(null);
+        }
       });
     }
   };
@@ -415,29 +421,51 @@ export function StudentsClient({
                       {student.route && student.status === "ACTIVE" && (
                         <button 
                           onClick={() => {
+                            setPendingStudentId(student.id);
                             startTransition(async () => {
-                              const res = await generateIndividualChallan(student.id);
-                              if (res.created) {
-                                await dialog.showSuccess("Challan Created", `Fee challan created for ${student.name} for ${res.month}.`);
-                              } else {
-                                await dialog.showSuccess("Notice", res.message || `Challan for ${student.name} already exists.`);
+                              try {
+                                const res = await generateIndividualChallan(student.id);
+                                if (res.created) {
+                                  await dialog.showSuccess("Challan Created", `Fee challan created for ${student.name} for ${res.month}.`);
+                                } else {
+                                  await dialog.showSuccess("Notice", res.message || `Challan for ${student.name} already exists.`);
+                                }
+                              } finally {
+                                setPendingStudentId(null);
                               }
                             });
                           }}
-                          className="text-[10px] flex items-center gap-1 bg-blue-50 text-blue-600 px-2 py-1 rounded-lg font-semibold hover:bg-blue-100 transition-colors"
+                          disabled={pendingStudentId === student.id}
+                          className="text-[10px] flex items-center gap-1 bg-blue-50 text-blue-600 px-2 py-1 rounded-lg font-semibold hover:bg-blue-100 transition-colors disabled:opacity-50"
                         >
-                          <FileText className="w-3 h-3" /> Bill
+                          {pendingStudentId === student.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <FileText className="w-3 h-3" />} Bill
                         </button>
                       )}
                       <button 
-                        onClick={() => startTransition(() => toggleStudentStatus(student.id, student.status))}
-                        className={`text-[10px] flex items-center gap-1 px-2 py-1 rounded-lg font-semibold transition-colors ${
+                        onClick={() => {
+                          setPendingStudentId(student.id);
+                          startTransition(async () => {
+                            try {
+                              await toggleStudentStatus(student.id, student.status);
+                            } finally {
+                              setPendingStudentId(null);
+                            }
+                          });
+                        }}
+                        disabled={pendingStudentId === student.id}
+                        className={`text-[10px] flex items-center gap-1 px-2 py-1 rounded-lg font-semibold transition-colors disabled:opacity-50 ${
                           student.status === "ACTIVE" 
                             ? "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600" 
                             : "bg-green-50 text-green-600 hover:bg-green-100"
                         }`}
                       >
-                        {student.status === "ACTIVE" ? <><Ban className="w-3 h-3" /> Deactivate</> : <><CheckCircle className="w-3 h-3" /> Activate</>}
+                        {pendingStudentId === student.id ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : student.status === "ACTIVE" ? (
+                          <><Ban className="w-3 h-3" /> Deactivate</>
+                        ) : (
+                          <><CheckCircle className="w-3 h-3" /> Activate</>
+                        )}
                       </button>
                       <button
                         onClick={() => startEditing(student)}
@@ -446,11 +474,13 @@ export function StudentsClient({
                         <Pencil className="w-3 h-3" />
                       </button>
                       <button
-                        onClick={() => handleDelete(student)}
-                        className="text-red-400 p-1 hover:text-red-600 transition-colors bg-red-50 rounded-lg h-6 w-6 flex items-center justify-center"
-                        disabled={isPending}
+                        onClick={() => {
+                          handleDelete(student);
+                        }}
+                        className="text-red-400 p-1 hover:text-red-600 transition-colors bg-red-50 rounded-lg h-6 w-6 flex items-center justify-center disabled:opacity-50"
+                        disabled={pendingStudentId === student.id}
                       >
-                        <Trash2 className="w-3 h-3" />
+                        {pendingStudentId === student.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
                       </button>
                     </div>
                     <span className={`inline-block text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${

@@ -203,7 +203,6 @@ export function VehiclesClient({ initialVehicles, availableRoutes = [] }: { init
                         }
                       }}
                       className="text-red-400 p-1 hover:text-red-600 transition-colors bg-red-50 rounded-lg h-7 w-7 flex items-center justify-center"
-                      disabled={isPending}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>

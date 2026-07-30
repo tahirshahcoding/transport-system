@@ -491,10 +491,9 @@ export function FinanceClient({
                                   <Button 
                                     size="sm" 
                                     onClick={() => openPaymentModal(challan)}
-                                    disabled={isPending}
-                                    className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] h-7 gap-1 px-2 disabled:opacity-50"
+                                    className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] h-7 gap-1 px-2.5 font-semibold"
                                   >
-                                    {isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}
+                                    <CheckCircle className="w-3 h-3" />
                                     Receive
                                   </Button>
                                 )}
