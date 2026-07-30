@@ -65,7 +65,6 @@ export default function LoginPage() {
                 type="text"
                 name="username"
                 placeholder="Enter admin username"
-                defaultValue="admin"
                 required
                 className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
               />
@@ -80,7 +79,6 @@ export default function LoginPage() {
                 type="password"
                 name="password"
                 placeholder="Enter password"
-                defaultValue="admin123"
                 required
                 className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
               />
@@ -105,10 +103,6 @@ export default function LoginPage() {
             )}
           </button>
         </form>
-
-        <p className="text-[11px] text-slate-400 text-center mt-6">
-          Default: <span className="font-mono text-slate-600 font-semibold">admin</span> / <span className="font-mono text-slate-600 font-semibold">admin123</span>
-        </p>
       </div>
     </div>
   );

@@ -31,8 +31,16 @@ export function DashboardChallanItem({ challan }: { challan: ChallanItem }) {
       phone = input.trim();
     }
 
-    const totalDue = challan.amount + challan.arrears;
-    const message = `Assalam o Alaikum ${challan.student.fatherName || challan.student.name},\n\nThis is a fee reminder from the Transport Department.\n\nStudent: ${challan.student.name}\nClass: ${challan.student.class}\nMonth: ${challan.month}\nAmount Due: Rs ${totalDue.toLocaleString()}\n\nPlease clear the pending dues at your earliest convenience. JazakAllah.`;
+    const amount = challan.amount;
+    const arrears = challan.arrears;
+    const totalDue = amount + arrears;
+
+    let breakdownText = `• Monthly Fee: Rs ${amount.toLocaleString()}`;
+    if (arrears > 0) {
+      breakdownText += `\n• Previous Arrears: Rs ${arrears.toLocaleString()}`;
+    }
+
+    const message = `Assalam o Alaikum ${challan.student.fatherName || challan.student.name},\n\nThis is a fee reminder from the Transport Department.\n\nStudent: ${challan.student.name}\nClass: ${challan.student.class}\nMonth: ${challan.month}\n\n${breakdownText}\n━━━━━━━━━━━━━━━━━━\nTotal Amount Due: Rs ${totalDue.toLocaleString()}\n\nPlease clear the pending dues at your earliest convenience. JazakAllah.`;
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
   };

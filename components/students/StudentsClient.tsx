@@ -16,9 +16,9 @@ type Student = {
   fatherName: string;
   mobileNumber: string;
   class: string;
-  institute: { name: string };
-  route: { name: string } | null;
-  vehicle: { registrationNumber: string } | null;
+  institute: { id: string; name: string };
+  route: { id: string; name: string } | null;
+  vehicle: { id: string; registrationNumber: string } | null;
   status: string;
 };
 
@@ -137,8 +137,7 @@ export function StudentsClient({
 
   const startEditing = (student: Student) => {
     setEditingStudent(student);
-    const matchedRoute = availableRoutes.find(r => r.name === student.route?.name);
-    setEditSelectedRouteId(matchedRoute?.id || "");
+    setEditSelectedRouteId(student.route?.id || "");
   };
 
   return (
@@ -250,7 +249,7 @@ export function StudentsClient({
                 <select 
                   id="edit-student-instituteId" 
                   name="instituteId" 
-                  defaultValue={availableInstitutes.find(i => i.name === editingStudent.institute.name)?.id || ""}
+                  defaultValue={editingStudent.institute.id || ""}
                   className="w-full rounded-xl bg-slate-50 border-slate-200 h-10 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2"
                 >
                   <option value="">-- Default Institute --</option>
@@ -279,7 +278,7 @@ export function StudentsClient({
                 <select 
                   id="edit-student-vehicleId" 
                   name="vehicleId" 
-                  defaultValue={availableVehicles.find(v => v.registrationNumber === editingStudent.vehicle?.registrationNumber)?.id || ""}
+                  defaultValue={editingStudent.vehicle?.id || ""}
                   className="w-full rounded-xl bg-slate-50 border-slate-200 h-10 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2"
                 >
                   <option value="">-- No Vehicle Assigned --</option>
@@ -388,7 +387,16 @@ export function StudentsClient({
                     <div className="flex gap-1.5 flex-wrap justify-end">
                       {student.route && student.status === "ACTIVE" && (
                         <button 
-                          onClick={() => startTransition(() => generateIndividualChallan(student.id))}
+                          onClick={() => {
+                            startTransition(async () => {
+                              const res = await generateIndividualChallan(student.id);
+                              if (res.created) {
+                                await dialog.showSuccess("Challan Created", `Fee challan created for ${student.name} for ${res.month}.`);
+                              } else {
+                                await dialog.showSuccess("Notice", res.message || `Challan for ${student.name} already exists.`);
+                              }
+                            });
+                          }}
                           className="text-[10px] flex items-center gap-1 bg-blue-50 text-blue-600 px-2 py-1 rounded-lg font-semibold hover:bg-blue-100 transition-colors"
                         >
                           <FileText className="w-3 h-3" /> Bill

@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useState, useTransition, useEffect } from "react";
-import { FileText, CreditCard, Printer, ArrowUpRight, CheckCircle, Loader2, MessageCircle, Send, Calendar } from "lucide-react";
+import { FileText, CreditCard, Printer, ArrowUpRight, CheckCircle, Loader2, MessageCircle, Send, Calendar, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +40,7 @@ type Payment = {
   method: string;
   student: { 
     name: string;
+    fatherName?: string;
     class: string;
     route: { name: string } | null;
   };
@@ -79,13 +80,21 @@ export function FinanceClient({
   }, [searchParams]);
 
   // Filters
+  const [search, setSearch] = useState("");
   const [filterMonth, setFilterMonth] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
 
   const filteredChallans = allChallans.filter(c => {
+    const q = search.trim().toLowerCase();
+    const matchesSearch = q ? (c.student.name.toLowerCase().includes(q) || c.id.toLowerCase().includes(q)) : true;
     const matchesMonth = filterMonth ? c.month === filterMonth : true;
     const matchesStatus = filterStatus ? c.status === filterStatus : true;
-    return matchesMonth && matchesStatus;
+    return matchesSearch && matchesMonth && matchesStatus;
+  });
+
+  const filteredPayments = allPayments.filter(p => {
+    const q = search.trim().toLowerCase();
+    return q ? (p.student.name.toLowerCase().includes(q) || p.id.toLowerCase().includes(q)) : true;
   });
 
   const recentPayments = allPayments.slice(0, 5);
@@ -147,9 +156,21 @@ export function FinanceClient({
       if (!input) return;
       phone = input.trim();
     }
+    const amount = challan.amount;
+    const arrears = challan.arrears;
     const totalPaid = challan.payments.reduce((sum, p) => sum + p.amount, 0);
-    const totalDue = challan.amount + challan.arrears - totalPaid;
-    const message = `Assalam o Alaikum ${challan.student.fatherName || challan.student.name},\n\nThis is a fee reminder from the Transport Department.\n\nStudent: ${challan.student.name}\nClass: ${challan.student.class}\nMonth: ${challan.month}\nAmount Due: Rs ${totalDue.toLocaleString()}\n\nPlease clear the pending dues at your earliest convenience. JazakAllah.`;
+    const totalDue = amount + arrears;
+    const remaining = totalDue - totalPaid;
+
+    let breakdownText = `• Monthly Fee: Rs ${amount.toLocaleString()}`;
+    if (arrears > 0) {
+      breakdownText += `\n• Previous Arrears: Rs ${arrears.toLocaleString()}`;
+    }
+    if (totalPaid > 0) {
+      breakdownText += `\n• Amount Paid: Rs ${totalPaid.toLocaleString()}`;
+    }
+
+    const message = `Assalam o Alaikum ${challan.student.fatherName || challan.student.name},\n\nThis is a fee reminder from the Transport Department.\n\nStudent: ${challan.student.name}\nClass: ${challan.student.class}\nMonth: ${challan.month}\n\n${breakdownText}\n━━━━━━━━━━━━━━━━━━\nRemaining Balance: Rs ${remaining.toLocaleString()}\n\nPlease clear the pending dues at your earliest convenience. JazakAllah.`;
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
   };
@@ -323,7 +344,17 @@ export function FinanceClient({
         {activeTab === "Challans" && (
           <div className="space-y-4">
             {/* Filters */}
-            <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
+            <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm space-y-3">
+              <div className="relative">
+                <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search student name or challan ID..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full h-9 pl-9 pr-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
+                />
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <select 
                   className="w-full rounded-xl bg-slate-50 border-transparent h-9 px-3 text-[11px] font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-200"
@@ -429,8 +460,8 @@ export function FinanceClient({
                                 )}
                               </div>
                               <div className="flex gap-1.5 flex-wrap justify-end">
-                                <Button variant="outline" size="sm" onClick={() => handlePrintChallan(challan)} className="rounded-lg border-slate-200 text-[10px] h-7 gap-1 px-2">
-                                  <Printer className="w-3 h-3" /> Print
+                                <Button variant="outline" size="sm" onClick={() => handlePrintChallan(challan)} className="rounded-xl border-slate-300 text-xs font-bold h-8 gap-1.5 px-3 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 shadow-xs">
+                                  <Printer className="w-3.5 h-3.5" /> Print
                                 </Button>
                                 {challan.status !== "PAID" && (
                                   <Button 
@@ -468,16 +499,29 @@ export function FinanceClient({
 
         {activeTab === "Payments" && (
           <div className="space-y-3">
-            {allPayments.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
+              <div className="relative">
+                <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search payment by student name..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full h-9 pl-9 pr-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
+                />
+              </div>
+            </div>
+
+            {filteredPayments.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-slate-100 shadow-sm">
                 <div className="bg-slate-100 p-4 rounded-2xl mb-4">
                   <CreditCard className="w-8 h-8 text-slate-400" />
                 </div>
-                <p className="text-sm font-semibold text-slate-700">No payments</p>
-                <p className="text-xs text-slate-400 mt-1">Payments will appear here.</p>
+                <p className="text-sm font-semibold text-slate-700">No payments found</p>
+                <p className="text-xs text-slate-400 mt-1">Try adjusting your search terms.</p>
               </div>
             ) : (
-              allPayments.map((payment) => (
+              filteredPayments.map((payment) => (
                 <div key={payment.id} className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm flex items-center justify-between">
                   <div>
                     <p className="font-bold text-sm text-slate-900">{payment.student.name}</p>
@@ -491,9 +535,9 @@ export function FinanceClient({
                         <span className="text-[9px] bg-green-50 text-green-600 px-2 py-0.5 rounded-full font-semibold">
                           {payment.method || "Cash"}
                         </span>
-                        <button onClick={() => handlePrintReceipt(payment)} className="text-slate-400 hover:text-blue-600 transition-colors">
-                          <Printer className="w-3 h-3" />
-                        </button>
+                        <Button variant="outline" size="sm" onClick={() => handlePrintReceipt(payment)} className="rounded-xl border-slate-300 text-xs font-bold h-8 gap-1.5 px-3 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 shadow-xs">
+                          <Printer className="w-3.5 h-3.5" /> Print Receipt
+                        </Button>
                       </div>
                     </div>
                 </div>
@@ -561,16 +605,19 @@ export function FinanceClient({
         {selectedChallan && (
           <PrintableChallan
             studentName={selectedChallan.student.name}
+            fatherName={selectedChallan.student.fatherName || "—"}
             className={selectedChallan.student.class}
             route={selectedChallan.student.route?.name || "N/A"}
             month={selectedChallan.month}
-            fee={selectedChallan.amount + selectedChallan.arrears}
+            fee={selectedChallan.amount}
+            arrears={selectedChallan.arrears}
             status={selectedChallan.status}
           />
         )}
         {selectedPayment && (
           <PrintablePaymentReceipt
             studentName={selectedPayment.student.name}
+            fatherName={selectedPayment.student.fatherName || "—"}
             className={selectedPayment.student.class}
             route={selectedPayment.student.route?.name || "N/A"}
             month={selectedPayment.challan.month}

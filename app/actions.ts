@@ -173,40 +173,39 @@ export async function generateIndividualChallan(studentId: string) {
   });
 
   if (!existing) {
-    // Check for previous arrears
+    // Check for previous arrears from past unpaid or partial challans
     const pendingChallans = await prisma.challan.findMany({
       where: { 
         studentId: student.id,
-        status: { in: ["UNPAID", "PARTIAL"] }
-      }
+        status: { in: ["UNPAID", "PARTIAL"] },
+        month: { not: monthName },
+      },
+      include: { payments: { select: { amount: true } } }
     });
 
-    const totalArrears = pendingChallans.reduce((sum, c) => {
-      // If it's a partial payment, we'd ideally calculate amount - payments.
-      // For simplicity in this step, if UNPAID we add full amount + its arrears.
-      // If PARTIAL, we'd need to subtract total paid. 
-      // We'll refine arrears calculation later in the finance module.
-      return sum + c.amount + c.arrears;
+    const totalArrears = pendingChallans.reduce((sum, pc) => {
+      const totalPaid = pc.payments.reduce((pSum, p) => pSum + p.amount, 0);
+      const remaining = (pc.amount + pc.arrears) - totalPaid;
+      return sum + Math.max(0, remaining);
     }, 0);
-
-    // To prevent double counting if we haven't implemented precise partial logic yet,
-    // we'll just sum up what is technically unpaid. 
-    // Actually, let's keep arrears logic simple in bulk for now, but we add the field.
 
     await prisma.challan.create({
       data: {
         studentId: student.id,
         amount: student.route.feeAmount,
-        arrears: 0, // We will implement accurate arrears calculation in generateChallans
+        arrears: totalArrears,
         month: monthName,
         dueDate: dueDate,
         status: "UNPAID"
       }
     });
+
+    revalidatePath("/");
+    revalidatePath("/finance");
+    return { created: true, month: monthName };
   }
 
-  revalidatePath("/students");
-  revalidatePath("/finance");
+  return { created: false, month: monthName, message: `Challan for ${monthName} already exists.` };
 }
 
 export async function addVehicle(data: { registration: string; capacity: number; routeId?: string }) {
@@ -277,12 +276,20 @@ export async function updateInstitute(id: string, data: { name: string }) {
 }
 
 export async function deleteInstitute(id: string) {
-  // First nullify institute on students or reassign
-  const defaultInstitute = await prisma.institute.findFirst({
+  // First find or create default institute for reassignment
+  let defaultInstitute = await prisma.institute.findFirst({
     where: { NOT: { id } }
   });
 
-  if (defaultInstitute) {
+  const studentsAttached = await prisma.student.count({ where: { instituteId: id } });
+
+  if (studentsAttached > 0) {
+    if (!defaultInstitute) {
+      defaultInstitute = await prisma.institute.create({
+        data: { name: "General Campus" }
+      });
+    }
+
     await prisma.student.updateMany({
       where: { instituteId: id },
       data: { instituteId: defaultInstitute.id }
@@ -502,6 +509,10 @@ export async function generateChallans(targetMonth?: string) {
 }
 
 export async function receivePayment(challanId: string, amount: number, method: string = "Cash") {
+  if (isNaN(amount) || amount <= 0) {
+    throw new Error("Payment amount must be greater than zero.");
+  }
+
   // Use transaction for atomic payment + status update
   await prisma.$transaction(async (tx) => {
     const challan = await tx.challan.findUnique({

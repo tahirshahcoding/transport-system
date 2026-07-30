@@ -6,9 +6,9 @@ export default async function StudentsPage() {
   const [students, routes, institutes, vehicles] = await Promise.all([
     prisma.student.findMany({
       include: {
-        institute: { select: { name: true } },
-        route: { select: { name: true } },
-        vehicle: { select: { registrationNumber: true } },
+        institute: { select: { id: true, name: true } },
+        route: { select: { id: true, name: true } },
+        vehicle: { select: { id: true, registrationNumber: true } },
       },
       orderBy: { name: "asc" },
     }),
