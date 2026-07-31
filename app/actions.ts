@@ -84,7 +84,7 @@ export async function updatePassword(currentPassword: string, newPassword: strin
   return { success: true };
 }
 
-export async function addStudent(data: { name: string; fatherName: string; mobileNumber: string; class: string; routeId?: string; instituteId?: string; vehicleId?: string }) {
+export async function addStudent(data: { name: string; fatherName: string; mobileNumber: string; class: string; routeId?: string; instituteId?: string; vehicleId?: string; monthlyFee?: number | null }) {
   // Find or create default institute if none provided
   let instituteId = data.instituteId;
   if (!instituteId) {
@@ -106,6 +106,7 @@ export async function addStudent(data: { name: string; fatherName: string; mobil
       instituteId: instituteId,
       routeId: data.routeId || null,
       vehicleId: data.vehicleId || null,
+      monthlyFee: data.monthlyFee || null,
     }
   });
 
@@ -113,7 +114,7 @@ export async function addStudent(data: { name: string; fatherName: string; mobil
   revalidatePath("/");
 }
 
-export async function updateStudent(id: string, data: { name: string; fatherName: string; mobileNumber: string; class: string; routeId?: string; instituteId?: string; vehicleId?: string }) {
+export async function updateStudent(id: string, data: { name: string; fatherName: string; mobileNumber: string; class: string; routeId?: string; instituteId?: string; vehicleId?: string; monthlyFee?: number | null }) {
   await prisma.student.update({
     where: { id },
     data: {
@@ -124,6 +125,7 @@ export async function updateStudent(id: string, data: { name: string; fatherName
       instituteId: data.instituteId,
       routeId: data.routeId || null,
       vehicleId: data.vehicleId || null,
+      monthlyFee: data.monthlyFee || null,
     }
   });
 
@@ -198,10 +200,12 @@ export async function generateIndividualChallan(studentId: string, targetMonth?:
       return sum + Math.max(0, remaining);
     }, 0);
 
+    const billedAmount = student.monthlyFee !== null ? student.monthlyFee : student.route.feeAmount;
+
     await prisma.challan.create({
       data: {
         studentId: student.id,
-        amount: student.route.feeAmount,
+        amount: billedAmount,
         arrears: totalArrears,
         month: monthName,
         dueDate: dueDate,
@@ -502,10 +506,13 @@ export async function generateChallans(targetMonth?: string) {
       continue;
     }
 
+    const arrears = arrearsMap.get(student.id) || 0;
+    const billedAmount = student.monthlyFee !== null ? student.monthlyFee : student.route.feeAmount;
+
     newChallans.push({
       studentId: student.id,
-      amount: student.route.feeAmount,
-      arrears: arrearsMap.get(student.id) || 0,
+      amount: billedAmount,
+      arrears: arrears,
       month: monthName,
       dueDate: dueDate,
       status: "UNPAID",

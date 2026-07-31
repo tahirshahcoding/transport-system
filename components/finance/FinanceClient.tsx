@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition } from "react";
 import { FileText, CreditCard, Printer, ArrowUpRight, CheckCircle, Loader2, MessageCircle, Send, Calendar, Search, Trash2, Receipt } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -65,7 +65,9 @@ export function FinanceClient({
   totalPending: number;
 }) {
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<typeof tabs[number]>("Overview");
+  const tabParam = searchParams.get("tab") as typeof tabs[number];
+  const initialTab = tabParam && tabs.includes(tabParam) ? tabParam : "Overview";
+  const [activeTab, setActiveTab] = useState<typeof tabs[number]>(initialTab);
   const [selectedChallan, setSelectedChallan] = useState<Challan | null>(null);
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [paymentModalChallan, setPaymentModalChallan] = useState<Challan | null>(null);
@@ -74,6 +76,17 @@ export function FinanceClient({
   const [pendingChallanId, setPendingChallanId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const dialog = useAppDialog();
+  const handlePrintChallan = (challan: Challan) => {
+    setSelectedPayment(null);
+    setSelectedChallan(challan);
+    setTimeout(() => window.print(), 100);
+  };
+
+  const handlePrintReceipt = (payment: Payment) => {
+    setSelectedChallan(null);
+    setSelectedPayment(payment);
+    setTimeout(() => window.print(), 100);
+  };
 
   const handleDeleteChallan = async (challan: Challan) => {
     const confirmed = await dialog.showConfirm(
@@ -91,13 +104,6 @@ export function FinanceClient({
       });
     }
   };
-
-  useEffect(() => {
-    const tabParam = searchParams.get("tab");
-    if (tabParam && tabs.includes(tabParam as typeof tabs[number])) {
-      setActiveTab(tabParam as typeof tabs[number]);
-    }
-  }, [searchParams]);
 
   // Filters
   const [search, setSearch] = useState("");
@@ -118,18 +124,6 @@ export function FinanceClient({
   });
 
   const recentPayments = allPayments.slice(0, 5);
-
-  const handlePrintChallan = (challan: Challan) => {
-    setSelectedPayment(null);
-    setSelectedChallan(challan);
-    setTimeout(() => window.print(), 100);
-  };
-
-  const handlePrintReceipt = (payment: Payment) => {
-    setSelectedChallan(null);
-    setSelectedPayment(payment);
-    setTimeout(() => window.print(), 100);
-  };
 
   const MONTHS_LIST = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const nowObj = new Date();
@@ -663,8 +657,9 @@ export function FinanceClient({
           )}
         </DialogContent>
       </Dialog>
+    </div>
 
-      {/* Print container */}
+      {/* Print container — MUST be outside the print:hidden div */}
       <div className="hidden print:block font-sans text-black">
         {selectedChallan && (
           <PrintableChallan
@@ -757,7 +752,6 @@ export function FinanceClient({
           </div>
         </DialogContent>
       </Dialog>
-    </div>
   </>
 );
 }

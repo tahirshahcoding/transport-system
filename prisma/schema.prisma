@@ -96,6 +96,7 @@ model Student {
   vehicleId    String?
   vehicle      Vehicle?  @relation(fields: [vehicleId], references: [id])
   status       String    @default("ACTIVE")
+  monthlyFee   Float?
   challans     Challan[]
   payments     Payment[]
 

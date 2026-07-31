@@ -13,23 +13,13 @@ export default async function Dashboard() {
     studentCount,
     vehicleCount,
     routeCount,
-    thisMonthCollections,
-    totalAllCollections,
-    totalAllExpenses,
     recentChallans,
-    pendingStudents,
     allChallansWithPayments,
     allExpensesList,
   ] = await Promise.all([
     prisma.student.count({ where: { status: "ACTIVE" } }),
     prisma.vehicle.count(),
     prisma.route.count(),
-    prisma.payment.aggregate({
-      _sum: { amount: true },
-      where: { challan: { month: currentMonthStr } }
-    }),
-    prisma.payment.aggregate({ _sum: { amount: true } }),
-    (prisma as any).expense ? prisma.expense.aggregate({ _sum: { amount: true } }) : Promise.resolve({ _sum: { amount: 0 } }),
     prisma.challan.findMany({
       where: { status: { in: ["UNPAID", "PARTIAL"] } },
       include: {
@@ -45,7 +35,6 @@ export default async function Dashboard() {
       orderBy: { id: "desc" },
       take: 4,
     }),
-    prisma.challan.groupBy({ by: ["studentId"], where: { status: { in: ["UNPAID", "PARTIAL"] } } }),
     prisma.challan.findMany({
       include: {
         payments: { select: { amount: true } }
@@ -57,9 +46,14 @@ export default async function Dashboard() {
       : Promise.resolve([]),
   ]);
 
-  const monthCollected = thisMonthCollections._sum.amount || 0;
-  const overallCollection = totalAllCollections._sum.amount || 0;
-  const overallExpenses = totalAllExpenses._sum.amount || 0;
+  const overallCollection = allChallansWithPayments.reduce(
+    (sum, c) => sum + c.payments.reduce((pSum, p) => pSum + p.amount, 0),
+    0
+  );
+  const monthCollected = allChallansWithPayments
+    .filter(c => c.month === currentMonthStr)
+    .reduce((sum, c) => sum + c.payments.reduce((pSum, p) => pSum + p.amount, 0), 0);
+  const overallExpenses = allExpensesList.reduce((sum: number, e: { amount: number }) => sum + e.amount, 0);
   const netProfit = overallCollection - overallExpenses;
   const isProfit = netProfit >= 0;
 
@@ -71,7 +65,7 @@ export default async function Dashboard() {
     return sum + Math.max(0, remaining);
   }, 0);
 
-  const pendingStudentCount = pendingStudents.length;
+  const pendingStudentCount = new Set(pendingChallans.map(c => c.studentId)).size;
 
   // Build Monthwise Billing, Collection & Profitability Stats
   const monthStatsMap = new Map<string, { billed: number; collected: number; expenses: number; count: number }>();

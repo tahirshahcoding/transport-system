@@ -20,8 +20,18 @@ export type StudentModel = runtime.Types.Result.DefaultSelection<Prisma.$Student
 
 export type AggregateStudent = {
   _count: StudentCountAggregateOutputType | null
+  _avg: StudentAvgAggregateOutputType | null
+  _sum: StudentSumAggregateOutputType | null
   _min: StudentMinAggregateOutputType | null
   _max: StudentMaxAggregateOutputType | null
+}
+
+export type StudentAvgAggregateOutputType = {
+  monthlyFee: number | null
+}
+
+export type StudentSumAggregateOutputType = {
+  monthlyFee: number | null
 }
 
 export type StudentMinAggregateOutputType = {
@@ -34,6 +44,7 @@ export type StudentMinAggregateOutputType = {
   routeId: string | null
   vehicleId: string | null
   status: string | null
+  monthlyFee: number | null
 }
 
 export type StudentMaxAggregateOutputType = {
@@ -46,6 +57,7 @@ export type StudentMaxAggregateOutputType = {
   routeId: string | null
   vehicleId: string | null
   status: string | null
+  monthlyFee: number | null
 }
 
 export type StudentCountAggregateOutputType = {
@@ -58,9 +70,18 @@ export type StudentCountAggregateOutputType = {
   routeId: number
   vehicleId: number
   status: number
+  monthlyFee: number
   _all: number
 }
 
+
+export type StudentAvgAggregateInputType = {
+  monthlyFee?: true
+}
+
+export type StudentSumAggregateInputType = {
+  monthlyFee?: true
+}
 
 export type StudentMinAggregateInputType = {
   id?: true
@@ -72,6 +93,7 @@ export type StudentMinAggregateInputType = {
   routeId?: true
   vehicleId?: true
   status?: true
+  monthlyFee?: true
 }
 
 export type StudentMaxAggregateInputType = {
@@ -84,6 +106,7 @@ export type StudentMaxAggregateInputType = {
   routeId?: true
   vehicleId?: true
   status?: true
+  monthlyFee?: true
 }
 
 export type StudentCountAggregateInputType = {
@@ -96,6 +119,7 @@ export type StudentCountAggregateInputType = {
   routeId?: true
   vehicleId?: true
   status?: true
+  monthlyFee?: true
   _all?: true
 }
 
@@ -137,6 +161,18 @@ export type StudentAggregateArgs<ExtArgs extends runtime.Types.Extensions.Intern
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: StudentAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: StudentSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: StudentMinAggregateInputType
@@ -167,6 +203,8 @@ export type StudentGroupByArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   _count?: StudentCountAggregateInputType | true
+  _avg?: StudentAvgAggregateInputType
+  _sum?: StudentSumAggregateInputType
   _min?: StudentMinAggregateInputType
   _max?: StudentMaxAggregateInputType
 }
@@ -181,7 +219,10 @@ export type StudentGroupByOutputType = {
   routeId: string | null
   vehicleId: string | null
   status: string
+  monthlyFee: number | null
   _count: StudentCountAggregateOutputType | null
+  _avg: StudentAvgAggregateOutputType | null
+  _sum: StudentSumAggregateOutputType | null
   _min: StudentMinAggregateOutputType | null
   _max: StudentMaxAggregateOutputType | null
 }
@@ -214,6 +255,7 @@ export type StudentWhereInput = {
   routeId?: Prisma.StringNullableFilter<"Student"> | string | null
   vehicleId?: Prisma.StringNullableFilter<"Student"> | string | null
   status?: Prisma.StringFilter<"Student"> | string
+  monthlyFee?: Prisma.FloatNullableFilter<"Student"> | number | null
   institute?: Prisma.XOR<Prisma.InstituteScalarRelationFilter, Prisma.InstituteWhereInput>
   route?: Prisma.XOR<Prisma.RouteNullableScalarRelationFilter, Prisma.RouteWhereInput> | null
   vehicle?: Prisma.XOR<Prisma.VehicleNullableScalarRelationFilter, Prisma.VehicleWhereInput> | null
@@ -231,6 +273,7 @@ export type StudentOrderByWithRelationInput = {
   routeId?: Prisma.SortOrderInput | Prisma.SortOrder
   vehicleId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  monthlyFee?: Prisma.SortOrderInput | Prisma.SortOrder
   institute?: Prisma.InstituteOrderByWithRelationInput
   route?: Prisma.RouteOrderByWithRelationInput
   vehicle?: Prisma.VehicleOrderByWithRelationInput
@@ -251,6 +294,7 @@ export type StudentWhereUniqueInput = Prisma.AtLeast<{
   routeId?: Prisma.StringNullableFilter<"Student"> | string | null
   vehicleId?: Prisma.StringNullableFilter<"Student"> | string | null
   status?: Prisma.StringFilter<"Student"> | string
+  monthlyFee?: Prisma.FloatNullableFilter<"Student"> | number | null
   institute?: Prisma.XOR<Prisma.InstituteScalarRelationFilter, Prisma.InstituteWhereInput>
   route?: Prisma.XOR<Prisma.RouteNullableScalarRelationFilter, Prisma.RouteWhereInput> | null
   vehicle?: Prisma.XOR<Prisma.VehicleNullableScalarRelationFilter, Prisma.VehicleWhereInput> | null
@@ -268,9 +312,12 @@ export type StudentOrderByWithAggregationInput = {
   routeId?: Prisma.SortOrderInput | Prisma.SortOrder
   vehicleId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  monthlyFee?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.StudentCountOrderByAggregateInput
+  _avg?: Prisma.StudentAvgOrderByAggregateInput
   _max?: Prisma.StudentMaxOrderByAggregateInput
   _min?: Prisma.StudentMinOrderByAggregateInput
+  _sum?: Prisma.StudentSumOrderByAggregateInput
 }
 
 export type StudentScalarWhereWithAggregatesInput = {
@@ -286,6 +333,7 @@ export type StudentScalarWhereWithAggregatesInput = {
   routeId?: Prisma.StringNullableWithAggregatesFilter<"Student"> | string | null
   vehicleId?: Prisma.StringNullableWithAggregatesFilter<"Student"> | string | null
   status?: Prisma.StringWithAggregatesFilter<"Student"> | string
+  monthlyFee?: Prisma.FloatNullableWithAggregatesFilter<"Student"> | number | null
 }
 
 export type StudentCreateInput = {
@@ -295,6 +343,7 @@ export type StudentCreateInput = {
   mobileNumber?: string
   class: string
   status?: string
+  monthlyFee?: number | null
   institute: Prisma.InstituteCreateNestedOneWithoutStudentsInput
   route?: Prisma.RouteCreateNestedOneWithoutStudentsInput
   vehicle?: Prisma.VehicleCreateNestedOneWithoutStudentsInput
@@ -312,6 +361,7 @@ export type StudentUncheckedCreateInput = {
   routeId?: string | null
   vehicleId?: string | null
   status?: string
+  monthlyFee?: number | null
   challans?: Prisma.ChallanUncheckedCreateNestedManyWithoutStudentInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutStudentInput
 }
@@ -323,6 +373,7 @@ export type StudentUpdateInput = {
   mobileNumber?: Prisma.StringFieldUpdateOperationsInput | string
   class?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  monthlyFee?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   institute?: Prisma.InstituteUpdateOneRequiredWithoutStudentsNestedInput
   route?: Prisma.RouteUpdateOneWithoutStudentsNestedInput
   vehicle?: Prisma.VehicleUpdateOneWithoutStudentsNestedInput
@@ -340,6 +391,7 @@ export type StudentUncheckedUpdateInput = {
   routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   vehicleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  monthlyFee?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   challans?: Prisma.ChallanUncheckedUpdateManyWithoutStudentNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutStudentNestedInput
 }
@@ -354,6 +406,7 @@ export type StudentCreateManyInput = {
   routeId?: string | null
   vehicleId?: string | null
   status?: string
+  monthlyFee?: number | null
 }
 
 export type StudentUpdateManyMutationInput = {
@@ -363,6 +416,7 @@ export type StudentUpdateManyMutationInput = {
   mobileNumber?: Prisma.StringFieldUpdateOperationsInput | string
   class?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  monthlyFee?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
 }
 
 export type StudentUncheckedUpdateManyInput = {
@@ -375,6 +429,7 @@ export type StudentUncheckedUpdateManyInput = {
   routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   vehicleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  monthlyFee?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
 }
 
 export type StudentListRelationFilter = {
@@ -397,6 +452,11 @@ export type StudentCountOrderByAggregateInput = {
   routeId?: Prisma.SortOrder
   vehicleId?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  monthlyFee?: Prisma.SortOrder
+}
+
+export type StudentAvgOrderByAggregateInput = {
+  monthlyFee?: Prisma.SortOrder
 }
 
 export type StudentMaxOrderByAggregateInput = {
@@ -409,6 +469,7 @@ export type StudentMaxOrderByAggregateInput = {
   routeId?: Prisma.SortOrder
   vehicleId?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  monthlyFee?: Prisma.SortOrder
 }
 
 export type StudentMinOrderByAggregateInput = {
@@ -421,6 +482,11 @@ export type StudentMinOrderByAggregateInput = {
   routeId?: Prisma.SortOrder
   vehicleId?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  monthlyFee?: Prisma.SortOrder
+}
+
+export type StudentSumOrderByAggregateInput = {
+  monthlyFee?: Prisma.SortOrder
 }
 
 export type StudentScalarRelationFilter = {
@@ -554,6 +620,14 @@ export type StudentUncheckedUpdateManyWithoutRouteNestedInput = {
   deleteMany?: Prisma.StudentScalarWhereInput | Prisma.StudentScalarWhereInput[]
 }
 
+export type NullableFloatFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type StudentCreateNestedOneWithoutChallansInput = {
   create?: Prisma.XOR<Prisma.StudentCreateWithoutChallansInput, Prisma.StudentUncheckedCreateWithoutChallansInput>
   connectOrCreate?: Prisma.StudentCreateOrConnectWithoutChallansInput
@@ -589,6 +663,7 @@ export type StudentCreateWithoutInstituteInput = {
   mobileNumber?: string
   class: string
   status?: string
+  monthlyFee?: number | null
   route?: Prisma.RouteCreateNestedOneWithoutStudentsInput
   vehicle?: Prisma.VehicleCreateNestedOneWithoutStudentsInput
   challans?: Prisma.ChallanCreateNestedManyWithoutStudentInput
@@ -604,6 +679,7 @@ export type StudentUncheckedCreateWithoutInstituteInput = {
   routeId?: string | null
   vehicleId?: string | null
   status?: string
+  monthlyFee?: number | null
   challans?: Prisma.ChallanUncheckedCreateNestedManyWithoutStudentInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutStudentInput
 }
@@ -647,6 +723,7 @@ export type StudentScalarWhereInput = {
   routeId?: Prisma.StringNullableFilter<"Student"> | string | null
   vehicleId?: Prisma.StringNullableFilter<"Student"> | string | null
   status?: Prisma.StringFilter<"Student"> | string
+  monthlyFee?: Prisma.FloatNullableFilter<"Student"> | number | null
 }
 
 export type StudentCreateWithoutVehicleInput = {
@@ -656,6 +733,7 @@ export type StudentCreateWithoutVehicleInput = {
   mobileNumber?: string
   class: string
   status?: string
+  monthlyFee?: number | null
   institute: Prisma.InstituteCreateNestedOneWithoutStudentsInput
   route?: Prisma.RouteCreateNestedOneWithoutStudentsInput
   challans?: Prisma.ChallanCreateNestedManyWithoutStudentInput
@@ -671,6 +749,7 @@ export type StudentUncheckedCreateWithoutVehicleInput = {
   instituteId: string
   routeId?: string | null
   status?: string
+  monthlyFee?: number | null
   challans?: Prisma.ChallanUncheckedCreateNestedManyWithoutStudentInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutStudentInput
 }
@@ -708,6 +787,7 @@ export type StudentCreateWithoutRouteInput = {
   mobileNumber?: string
   class: string
   status?: string
+  monthlyFee?: number | null
   institute: Prisma.InstituteCreateNestedOneWithoutStudentsInput
   vehicle?: Prisma.VehicleCreateNestedOneWithoutStudentsInput
   challans?: Prisma.ChallanCreateNestedManyWithoutStudentInput
@@ -723,6 +803,7 @@ export type StudentUncheckedCreateWithoutRouteInput = {
   instituteId: string
   vehicleId?: string | null
   status?: string
+  monthlyFee?: number | null
   challans?: Prisma.ChallanUncheckedCreateNestedManyWithoutStudentInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutStudentInput
 }
@@ -760,6 +841,7 @@ export type StudentCreateWithoutChallansInput = {
   mobileNumber?: string
   class: string
   status?: string
+  monthlyFee?: number | null
   institute: Prisma.InstituteCreateNestedOneWithoutStudentsInput
   route?: Prisma.RouteCreateNestedOneWithoutStudentsInput
   vehicle?: Prisma.VehicleCreateNestedOneWithoutStudentsInput
@@ -776,6 +858,7 @@ export type StudentUncheckedCreateWithoutChallansInput = {
   routeId?: string | null
   vehicleId?: string | null
   status?: string
+  monthlyFee?: number | null
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutStudentInput
 }
 
@@ -802,6 +885,7 @@ export type StudentUpdateWithoutChallansInput = {
   mobileNumber?: Prisma.StringFieldUpdateOperationsInput | string
   class?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  monthlyFee?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   institute?: Prisma.InstituteUpdateOneRequiredWithoutStudentsNestedInput
   route?: Prisma.RouteUpdateOneWithoutStudentsNestedInput
   vehicle?: Prisma.VehicleUpdateOneWithoutStudentsNestedInput
@@ -818,6 +902,7 @@ export type StudentUncheckedUpdateWithoutChallansInput = {
   routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   vehicleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  monthlyFee?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutStudentNestedInput
 }
 
@@ -828,6 +913,7 @@ export type StudentCreateWithoutPaymentsInput = {
   mobileNumber?: string
   class: string
   status?: string
+  monthlyFee?: number | null
   institute: Prisma.InstituteCreateNestedOneWithoutStudentsInput
   route?: Prisma.RouteCreateNestedOneWithoutStudentsInput
   vehicle?: Prisma.VehicleCreateNestedOneWithoutStudentsInput
@@ -844,6 +930,7 @@ export type StudentUncheckedCreateWithoutPaymentsInput = {
   routeId?: string | null
   vehicleId?: string | null
   status?: string
+  monthlyFee?: number | null
   challans?: Prisma.ChallanUncheckedCreateNestedManyWithoutStudentInput
 }
 
@@ -870,6 +957,7 @@ export type StudentUpdateWithoutPaymentsInput = {
   mobileNumber?: Prisma.StringFieldUpdateOperationsInput | string
   class?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  monthlyFee?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   institute?: Prisma.InstituteUpdateOneRequiredWithoutStudentsNestedInput
   route?: Prisma.RouteUpdateOneWithoutStudentsNestedInput
   vehicle?: Prisma.VehicleUpdateOneWithoutStudentsNestedInput
@@ -886,6 +974,7 @@ export type StudentUncheckedUpdateWithoutPaymentsInput = {
   routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   vehicleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  monthlyFee?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   challans?: Prisma.ChallanUncheckedUpdateManyWithoutStudentNestedInput
 }
 
@@ -898,6 +987,7 @@ export type StudentCreateManyInstituteInput = {
   routeId?: string | null
   vehicleId?: string | null
   status?: string
+  monthlyFee?: number | null
 }
 
 export type StudentUpdateWithoutInstituteInput = {
@@ -907,6 +997,7 @@ export type StudentUpdateWithoutInstituteInput = {
   mobileNumber?: Prisma.StringFieldUpdateOperationsInput | string
   class?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  monthlyFee?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   route?: Prisma.RouteUpdateOneWithoutStudentsNestedInput
   vehicle?: Prisma.VehicleUpdateOneWithoutStudentsNestedInput
   challans?: Prisma.ChallanUpdateManyWithoutStudentNestedInput
@@ -922,6 +1013,7 @@ export type StudentUncheckedUpdateWithoutInstituteInput = {
   routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   vehicleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  monthlyFee?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   challans?: Prisma.ChallanUncheckedUpdateManyWithoutStudentNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutStudentNestedInput
 }
@@ -935,6 +1027,7 @@ export type StudentUncheckedUpdateManyWithoutInstituteInput = {
   routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   vehicleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  monthlyFee?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
 }
 
 export type StudentCreateManyVehicleInput = {
@@ -946,6 +1039,7 @@ export type StudentCreateManyVehicleInput = {
   instituteId: string
   routeId?: string | null
   status?: string
+  monthlyFee?: number | null
 }
 
 export type StudentUpdateWithoutVehicleInput = {
@@ -955,6 +1049,7 @@ export type StudentUpdateWithoutVehicleInput = {
   mobileNumber?: Prisma.StringFieldUpdateOperationsInput | string
   class?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  monthlyFee?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   institute?: Prisma.InstituteUpdateOneRequiredWithoutStudentsNestedInput
   route?: Prisma.RouteUpdateOneWithoutStudentsNestedInput
   challans?: Prisma.ChallanUpdateManyWithoutStudentNestedInput
@@ -970,6 +1065,7 @@ export type StudentUncheckedUpdateWithoutVehicleInput = {
   instituteId?: Prisma.StringFieldUpdateOperationsInput | string
   routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  monthlyFee?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   challans?: Prisma.ChallanUncheckedUpdateManyWithoutStudentNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutStudentNestedInput
 }
@@ -983,6 +1079,7 @@ export type StudentUncheckedUpdateManyWithoutVehicleInput = {
   instituteId?: Prisma.StringFieldUpdateOperationsInput | string
   routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  monthlyFee?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
 }
 
 export type StudentCreateManyRouteInput = {
@@ -994,6 +1091,7 @@ export type StudentCreateManyRouteInput = {
   instituteId: string
   vehicleId?: string | null
   status?: string
+  monthlyFee?: number | null
 }
 
 export type StudentUpdateWithoutRouteInput = {
@@ -1003,6 +1101,7 @@ export type StudentUpdateWithoutRouteInput = {
   mobileNumber?: Prisma.StringFieldUpdateOperationsInput | string
   class?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  monthlyFee?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   institute?: Prisma.InstituteUpdateOneRequiredWithoutStudentsNestedInput
   vehicle?: Prisma.VehicleUpdateOneWithoutStudentsNestedInput
   challans?: Prisma.ChallanUpdateManyWithoutStudentNestedInput
@@ -1018,6 +1117,7 @@ export type StudentUncheckedUpdateWithoutRouteInput = {
   instituteId?: Prisma.StringFieldUpdateOperationsInput | string
   vehicleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  monthlyFee?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   challans?: Prisma.ChallanUncheckedUpdateManyWithoutStudentNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutStudentNestedInput
 }
@@ -1031,6 +1131,7 @@ export type StudentUncheckedUpdateManyWithoutRouteInput = {
   instituteId?: Prisma.StringFieldUpdateOperationsInput | string
   vehicleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.StringFieldUpdateOperationsInput | string
+  monthlyFee?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
 }
 
 
@@ -1083,6 +1184,7 @@ export type StudentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   routeId?: boolean
   vehicleId?: boolean
   status?: boolean
+  monthlyFee?: boolean
   institute?: boolean | Prisma.InstituteDefaultArgs<ExtArgs>
   route?: boolean | Prisma.Student$routeArgs<ExtArgs>
   vehicle?: boolean | Prisma.Student$vehicleArgs<ExtArgs>
@@ -1101,6 +1203,7 @@ export type StudentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   routeId?: boolean
   vehicleId?: boolean
   status?: boolean
+  monthlyFee?: boolean
   institute?: boolean | Prisma.InstituteDefaultArgs<ExtArgs>
   route?: boolean | Prisma.Student$routeArgs<ExtArgs>
   vehicle?: boolean | Prisma.Student$vehicleArgs<ExtArgs>
@@ -1116,6 +1219,7 @@ export type StudentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   routeId?: boolean
   vehicleId?: boolean
   status?: boolean
+  monthlyFee?: boolean
   institute?: boolean | Prisma.InstituteDefaultArgs<ExtArgs>
   route?: boolean | Prisma.Student$routeArgs<ExtArgs>
   vehicle?: boolean | Prisma.Student$vehicleArgs<ExtArgs>
@@ -1131,9 +1235,10 @@ export type StudentSelectScalar = {
   routeId?: boolean
   vehicleId?: boolean
   status?: boolean
+  monthlyFee?: boolean
 }
 
-export type StudentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "fatherName" | "mobileNumber" | "class" | "instituteId" | "routeId" | "vehicleId" | "status", ExtArgs["result"]["student"]>
+export type StudentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "fatherName" | "mobileNumber" | "class" | "instituteId" | "routeId" | "vehicleId" | "status" | "monthlyFee", ExtArgs["result"]["student"]>
 export type StudentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   institute?: boolean | Prisma.InstituteDefaultArgs<ExtArgs>
   route?: boolean | Prisma.Student$routeArgs<ExtArgs>
@@ -1172,6 +1277,7 @@ export type $StudentPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     routeId: string | null
     vehicleId: string | null
     status: string
+    monthlyFee: number | null
   }, ExtArgs["result"]["student"]>
   composites: {}
 }
@@ -1609,6 +1715,7 @@ export interface StudentFieldRefs {
   readonly routeId: Prisma.FieldRef<"Student", 'String'>
   readonly vehicleId: Prisma.FieldRef<"Student", 'String'>
   readonly status: Prisma.FieldRef<"Student", 'String'>
+  readonly monthlyFee: Prisma.FieldRef<"Student", 'Float'>
 }
     
 

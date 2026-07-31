@@ -28,13 +28,15 @@ export function PrintablePaymentReceipt({
   receiptNo?: string;
 }) {
   const displayClass = studentClass || className || "—";
-  const displayReceiptNo = receiptNo || `PAY-${month.replace(/\s+/g, "").slice(0, 3).toUpperCase()}-${studentName.slice(0, 3).toUpperCase()}`;
+  const safeMonth = month || "N/A";
+  const safeName = studentName || "Unknown";
+  const displayReceiptNo = receiptNo || `PAY-${safeMonth.replace(/\s+/g, "").slice(0, 3).toUpperCase()}-${safeName.slice(0, 3).toUpperCase()}`;
 
   return (
     <div
       className={cn(
         "bg-white text-black font-sans text-[10px] leading-tight w-[58mm] mx-auto p-1.5",
-        "print:block print:absolute print:left-0 print:top-0 print:w-[58mm] print:m-0 print:p-1.5",
+        "print:block print:w-[58mm] print:p-1.5",
         "border border-slate-300 print:border-none rounded-none"
       )}
     >
@@ -99,7 +101,7 @@ export function PrintablePaymentReceipt({
 
         <div className="flex justify-between items-baseline border-b border-black pb-0.5 pt-0.5">
           <span className="font-extrabold text-[10px]">Amount Paid :</span>
-          <span className="font-extrabold text-xs">Rs. {amountPaid.toLocaleString()} ({method})</span>
+          <span className="font-extrabold text-xs">Rs. {(amountPaid || 0).toLocaleString()} ({method || "Cash"})</span>
         </div>
       </div>
 

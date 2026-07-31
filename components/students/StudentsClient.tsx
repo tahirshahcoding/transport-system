@@ -34,7 +34,7 @@ export function StudentsClient({
   availableVehicles = [] 
 }: { 
   initialStudents: Student[], 
-  availableRoutes?: { id: string, name: string }[], 
+  availableRoutes?: { id: string, name: string, feeAmount: number }[], 
   availableInstitutes?: { id: string, name: string }[],
   availableVehicles?: { id: string, registrationNumber: string, routeId: string | null }[]
 }) {
@@ -52,7 +52,31 @@ export function StudentsClient({
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [selectedRouteId, setSelectedRouteId] = useState("");
   const [editSelectedRouteId, setEditSelectedRouteId] = useState("");
+  const [monthlyFee, setMonthlyFee] = useState<string>("");
+  const [editMonthlyFee, setEditMonthlyFee] = useState<string>("");
   const [pendingStudentId, setPendingStudentId] = useState<string | null>(null);
+
+  const handleRouteChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const routeId = e.target.value;
+    setSelectedRouteId(routeId);
+    const route = availableRoutes.find(r => r.id === routeId);
+    if (route) {
+      setMonthlyFee(route.feeAmount.toString());
+    } else {
+      setMonthlyFee("");
+    }
+  };
+
+  const handleEditRouteChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const routeId = e.target.value;
+    setEditSelectedRouteId(routeId);
+    const route = availableRoutes.find(r => r.id === routeId);
+    if (route) {
+      setEditMonthlyFee(route.feeAmount.toString());
+    } else {
+      setEditMonthlyFee("");
+    }
+  };
   
   // Bill Modal State
   const now = new Date();
@@ -108,11 +132,18 @@ export function StudentsClient({
     const routeId = formData.get("routeId") as string;
     const instituteId = formData.get("instituteId") as string;
     const vehicleId = formData.get("vehicleId") as string;
+    const mFeeVal = formData.get("monthlyFee") as string;
+    const parsedFee = mFeeVal ? parseFloat(mFeeVal) : null;
 
     startTransition(async () => {
-      await addStudent({ name, fatherName, mobileNumber, class: studentClass, routeId: routeId || undefined, instituteId: instituteId || undefined, vehicleId: vehicleId || undefined });
+      await addStudent({ 
+        name, fatherName, mobileNumber, class: studentClass, 
+        routeId: routeId || undefined, instituteId: instituteId || undefined, vehicleId: vehicleId || undefined,
+        monthlyFee: parsedFee 
+      });
       setIsOpen(false);
       setSelectedRouteId("");
+      setMonthlyFee("");
     });
   };
 
@@ -127,6 +158,8 @@ export function StudentsClient({
     const routeId = formData.get("routeId") as string;
     const instituteId = formData.get("instituteId") as string;
     const vehicleId = formData.get("vehicleId") as string;
+    const mFeeVal = formData.get("monthlyFee") as string;
+    const parsedFee = mFeeVal ? parseFloat(mFeeVal) : null;
 
     startTransition(async () => {
       await updateStudent(editingStudent.id, {
@@ -137,9 +170,11 @@ export function StudentsClient({
         routeId: routeId || undefined,
         instituteId: instituteId || undefined,
         vehicleId: vehicleId || undefined,
+        monthlyFee: parsedFee,
       });
       setEditingStudent(null);
       setEditSelectedRouteId("");
+      setEditMonthlyFee("");
     });
   };
 
@@ -163,6 +198,7 @@ export function StudentsClient({
   const startEditing = (student: Student) => {
     setEditingStudent(student);
     setEditSelectedRouteId(student.route?.id || "");
+    setEditMonthlyFee((student as any).monthlyFee !== null && (student as any).monthlyFee !== undefined ? String((student as any).monthlyFee) : "");
   };
 
   return (
@@ -214,7 +250,7 @@ export function StudentsClient({
                   id="routeId" 
                   name="routeId" 
                   value={selectedRouteId}
-                  onChange={(e) => setSelectedRouteId(e.target.value)}
+                  onChange={handleRouteChange}
                   className="w-full rounded-xl bg-slate-50 border-slate-200 h-10 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2"
                 >
                   <option value="">-- No Route Assigned --</option>
@@ -222,6 +258,18 @@ export function StudentsClient({
                     <option key={r.id} value={r.id}>{r.name}</option>
                   ))}
                 </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="monthlyFee" className="text-xs font-semibold text-slate-600">Monthly Fee Override</Label>
+                <Input 
+                  id="monthlyFee" 
+                  name="monthlyFee" 
+                  type="number" 
+                  placeholder="Auto-filled from route" 
+                  value={monthlyFee}
+                  onChange={(e) => setMonthlyFee(e.target.value)}
+                  className="rounded-xl bg-slate-50 border-slate-200 h-10" 
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="vehicleId" className="text-xs font-semibold text-slate-600">Assign Vehicle (Optional)</Label>
@@ -288,7 +336,7 @@ export function StudentsClient({
                   id="edit-student-routeId" 
                   name="routeId" 
                   value={editSelectedRouteId}
-                  onChange={(e) => setEditSelectedRouteId(e.target.value)}
+                  onChange={handleEditRouteChange}
                   className="w-full rounded-xl bg-slate-50 border-slate-200 h-10 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2"
                 >
                   <option value="">-- No Route Assigned --</option>
@@ -296,6 +344,18 @@ export function StudentsClient({
                     <option key={r.id} value={r.id}>{r.name}</option>
                   ))}
                 </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-student-monthlyFee" className="text-xs font-semibold text-slate-600">Monthly Fee Override</Label>
+                <Input 
+                  id="edit-student-monthlyFee" 
+                  name="monthlyFee" 
+                  type="number" 
+                  placeholder="Auto-filled from route" 
+                  value={editMonthlyFee}
+                  onChange={(e) => setEditMonthlyFee(e.target.value)}
+                  className="rounded-xl bg-slate-50 border-slate-200 h-10" 
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-student-vehicleId" className="text-xs font-semibold text-slate-600">Assign Vehicle (Optional)</Label>

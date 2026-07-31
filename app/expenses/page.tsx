@@ -20,14 +20,11 @@ export default async function ExpensesPage() {
         })
       : Promise.resolve([]);
 
-    const [expData, vehData, colData, payData] = await Promise.all([
+    const [expData, vehData, payData] = await Promise.all([
       fetchExpenses,
       prisma.vehicle.findMany({
         select: { id: true, registrationNumber: true },
         orderBy: { registrationNumber: "asc" },
-      }),
-      prisma.payment.aggregate({
-        _sum: { amount: true },
       }),
       prisma.payment.findMany({
         select: {
@@ -39,8 +36,8 @@ export default async function ExpensesPage() {
 
     expenses = expData;
     vehicles = vehData;
-    totalCollection = colData._sum.amount || 0;
     payments = payData;
+    totalCollection = payData.reduce((sum, p) => sum + p.amount, 0);
   } catch (err) {
     console.error("Expenses DB fetch warning:", err);
   }

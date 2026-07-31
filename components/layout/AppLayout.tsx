@@ -81,12 +81,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#f8f9fb] font-sans text-slate-900">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto md:pl-64 pb-[72px] md:pb-0">
+    <div className="flex min-h-screen bg-[#f8f9fb] font-sans text-slate-900 print:bg-white print:min-h-0">
+      <div className="print:hidden shrink-0">
+        <Sidebar />
+      </div>
+      <main className="flex-1 overflow-y-auto print:overflow-visible print:h-auto print:w-full md:pl-64 print:pl-0 pb-[72px] md:pb-0 print:pb-0">
         {children}
       </main>
-      <MobileNav />
+      <div className="print:hidden">
+        <MobileNav />
+      </div>
     </div>
   );
 }

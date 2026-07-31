@@ -35,7 +35,7 @@ export const PrintableSalaryVoucher = forwardRef<HTMLDivElement, SalaryVoucherPr
         ref={ref}
         className={cn(
           "bg-white text-black font-sans text-[10px] leading-tight w-[58mm] mx-auto p-1.5",
-          "print:block print:absolute print:left-0 print:top-0 print:w-[58mm] print:m-0 print:p-1.5",
+          "print:block print:w-[58mm] print:p-1.5",
           "border border-slate-300 print:border-none rounded-none"
         )}
       >

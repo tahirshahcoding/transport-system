@@ -5,7 +5,7 @@ import { FinanceClient } from "@/components/finance/FinanceClient";
 export const dynamic = "force-dynamic";
 
 export default async function FinancePage() {
-  const [allChallans, allPayments, collections] = await Promise.all([
+  const [allChallans, allPayments] = await Promise.all([
     prisma.challan.findMany({
       include: {
         student: {
@@ -31,7 +31,6 @@ export default async function FinancePage() {
       },
       orderBy: { date: "desc" },
     }),
-    prisma.payment.aggregate({ _sum: { amount: true } }),
   ]);
 
   // Compute unique months for filter dropdown
@@ -46,13 +45,15 @@ export default async function FinancePage() {
       return sum + Math.max(0, remaining);
     }, 0);
 
+  const totalCollection = allPayments.reduce((sum, p) => sum + p.amount, 0);
+
   return (
     <Suspense fallback={<div className="p-8 text-center text-xs text-slate-400">Loading Finance...</div>}>
       <FinanceClient
         allChallans={allChallans}
         allPayments={allPayments}
         uniqueMonths={uniqueMonths}
-        totalCollection={collections._sum.amount || 0}
+        totalCollection={totalCollection}
         totalPending={totalPending}
       />
     </Suspense>
