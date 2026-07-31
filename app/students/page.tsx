@@ -2,6 +2,8 @@ import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { StudentsClient } from "@/components/students/StudentsClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function StudentsPage() {
   const [students, routes, institutes, vehicles] = await Promise.all([
     prisma.student.findMany({

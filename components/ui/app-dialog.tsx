@@ -40,6 +40,7 @@ export function AppDialogProvider({ children }: { children: React.ReactNode }) {
 
   const [inputValue, setInputValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const resolveRef = useRef<((value: string | boolean | null) => void) | null>(null);
 
   useEffect(() => {
     if (dialog.isOpen && dialog.type === "prompt") {
@@ -49,13 +50,15 @@ export function AppDialogProvider({ children }: { children: React.ReactNode }) {
   }, [dialog.isOpen, dialog.type, dialog.defaultValue]);
 
   const closeDialog = useCallback((result: string | boolean | null) => {
-    dialog.resolve?.(result);
+    resolveRef.current?.(result);
+    resolveRef.current = null;
     setDialog(prev => ({ ...prev, isOpen: false }));
     setInputValue("");
-  }, [dialog]);
+  }, []);
 
   const showConfirm = useCallback((title: string, message: string): Promise<boolean> => {
     return new Promise((resolve) => {
+      resolveRef.current = resolve as (value: string | boolean | null) => void;
       setDialog({
         isOpen: true,
         type: "confirm",
@@ -63,13 +66,13 @@ export function AppDialogProvider({ children }: { children: React.ReactNode }) {
         message,
         confirmLabel: "Confirm",
         cancelLabel: "Cancel",
-        resolve: resolve as (value: string | boolean | null) => void,
       });
     });
   }, []);
 
   const showPrompt = useCallback((title: string, message: string, placeholder?: string, defaultValue?: string): Promise<string | null> => {
     return new Promise((resolve) => {
+      resolveRef.current = resolve as (value: string | boolean | null) => void;
       setDialog({
         isOpen: true,
         type: "prompt",
@@ -86,26 +89,26 @@ export function AppDialogProvider({ children }: { children: React.ReactNode }) {
 
   const showAlert = useCallback((title: string, message: string): Promise<void> => {
     return new Promise((resolve) => {
+      resolveRef.current = () => resolve();
       setDialog({
         isOpen: true,
         type: "alert",
         title,
         message,
         confirmLabel: "OK",
-        resolve: () => resolve(),
       });
     });
   }, []);
 
   const showSuccess = useCallback((title: string, message: string): Promise<void> => {
     return new Promise((resolve) => {
+      resolveRef.current = () => resolve();
       setDialog({
         isOpen: true,
         type: "success",
         title,
         message,
         confirmLabel: "Done",
-        resolve: () => resolve(),
       });
     });
   }, []);

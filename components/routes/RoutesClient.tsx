@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Map, Plus, Search, Trash2, Pencil } from "lucide-react";
+import { Map, Plus, Search, Trash2, Pencil, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ export function RoutesClient({ initialRoutes }: { initialRoutes: Route[] }) {
   const [isOpen, setIsOpen] = useState(false);
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [pendingRouteId, setPendingRouteId] = useState<string | null>(null);
   const dialog = useAppDialog();
 
   const filteredRoutes = initialRoutes.filter(r =>
@@ -31,7 +32,7 @@ export function RoutesClient({ initialRoutes }: { initialRoutes: Route[] }) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const name = formData.get("name") as string;
-    const fee = parseInt(formData.get("fee") as string, 10);
+    const fee = parseFloat(formData.get("fee") as string);
 
     startTransition(async () => {
       await addRoute({ name, fee });
@@ -44,7 +45,7 @@ export function RoutesClient({ initialRoutes }: { initialRoutes: Route[] }) {
     if (!editingRoute) return;
     const formData = new FormData(e.currentTarget);
     const name = formData.get("name") as string;
-    const fee = parseInt(formData.get("fee") as string, 10);
+    const fee = parseFloat(formData.get("fee") as string);
 
     startTransition(async () => {
       await updateRoute(editingRoute.id, { name, fee });
@@ -139,7 +140,7 @@ export function RoutesClient({ initialRoutes }: { initialRoutes: Route[] }) {
                   <div>
                     <p className="font-bold text-sm text-slate-900">{route.name}</p>
                     <p className="text-[11px] text-slate-400 mt-0.5">
-                      {route._count.students} Students
+                      Fee: <span className="font-semibold text-slate-600">Rs {route.feeAmount.toLocaleString()}</span> · {route._count.students} Students
                     </p>
                     <p className="text-[11px] text-slate-400">
                       {route._count.vehicles} Vehicle(s)
@@ -159,12 +160,20 @@ export function RoutesClient({ initialRoutes }: { initialRoutes: Route[] }) {
                           `Are you sure you want to delete "${route.name}"? Students and vehicles will be unassigned.`
                         );
                         if (confirmed) {
-                          startTransition(() => deleteRoute(route.id));
+                          setPendingRouteId(route.id);
+                          startTransition(async () => {
+                            try {
+                              await deleteRoute(route.id);
+                            } finally {
+                              setPendingRouteId(null);
+                            }
+                          });
                         }
                       }}
-                      className="text-red-400 p-1 hover:text-red-600 transition-colors bg-red-50 rounded-lg h-7 w-7 flex items-center justify-center"
+                      disabled={pendingRouteId === route.id}
+                      className="text-red-400 p-1 hover:text-red-600 transition-colors bg-red-50 rounded-lg h-7 w-7 flex items-center justify-center disabled:opacity-50"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      {pendingRouteId === route.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                     </button>
                   </div>
                 </div>

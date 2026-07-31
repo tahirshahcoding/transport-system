@@ -64,12 +64,13 @@ model Institute {
 }
 
 model Vehicle {
-  id                 String   @id @default(cuid())
+  id                 String    @id @default(cuid())
   registrationNumber String
   capacity           Int?
   routeId            String?
-  route              Route?   @relation(fields: [routeId], references: [id])
+  route              Route?    @relation(fields: [routeId], references: [id])
   students           Student[]
+  expenses           Expense[]
 
   @@index([routeId])
 }
@@ -133,6 +134,23 @@ model Payment {
 
   @@index([studentId])
   @@index([challanId])
+  @@index([date])
+}
+
+model Expense {
+  id        String   @id @default(cuid())
+  title     String
+  category  String   @default("Maintenance")
+  amount    Float
+  month     String
+  date      DateTime @default(now())
+  vehicleId String?
+  vehicle   Vehicle? @relation(fields: [vehicleId], references: [id])
+  notes     String?  @default("")
+
+  @@index([category])
+  @@index([month])
+  @@index([vehicleId])
   @@index([date])
 }
 

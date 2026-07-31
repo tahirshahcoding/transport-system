@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils";
 interface ChallanProps {
   studentName: string;
   fatherName?: string;
-  className: string;
+  className?: string;
+  studentClass?: string;
   route: string;
   month: string;
   fee: number;
@@ -23,12 +24,13 @@ export const PrintableChallan = forwardRef<HTMLDivElement, ChallanProps>(
       studentName,
       fatherName = "—",
       className,
+      studentClass,
       route,
       month,
       fee,
       arrears = 0,
       status,
-      instituteName = "RAHIM TRAVEL",
+      instituteName = "General Campus",
       receiptNo,
       dueDate,
     },
@@ -40,7 +42,8 @@ export const PrintableChallan = forwardRef<HTMLDivElement, ChallanProps>(
       year: "2-digit",
     });
 
-    const displayReceiptNo = receiptNo || `REC-${Math.floor(1000 + Math.random() * 9000)}`;
+    const displayClass = studentClass || className || "—";
+    const displayReceiptNo = receiptNo || `CH-${month.replace(/\s+/g, "").slice(0, 3).toUpperCase()}-${studentName.slice(0, 3).toUpperCase()}`;
     const totalAmount = fee + arrears;
 
     return (
@@ -57,7 +60,7 @@ export const PrintableChallan = forwardRef<HTMLDivElement, ChallanProps>(
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="Logo" className="w-10 h-10 object-contain mb-0.5" />
           <h1 className="font-extrabold text-sm tracking-tight text-black uppercase font-outfit">
-            {instituteName || "RAHIM TRAVEL"}
+            RAHIM TRAVEL
           </h1>
           <p className="text-[8px] font-semibold text-black tracking-widest mt-0.5">
             SAFE JOURNEY, YOUR TRUST
@@ -92,8 +95,13 @@ export const PrintableChallan = forwardRef<HTMLDivElement, ChallanProps>(
           </div>
 
           <div className="flex justify-between items-baseline border-b border-dotted border-black/40 pb-0.5">
+            <span className="font-bold min-w-[70px]">Class / Grade :</span>
+            <span className="font-semibold truncate max-w-[130px]">{displayClass}</span>
+          </div>
+
+          <div className="flex justify-between items-baseline border-b border-dotted border-black/40 pb-0.5">
             <span className="font-bold min-w-[70px]">Institute :</span>
-            <span className="font-semibold truncate max-w-[130px]">{className}</span>
+            <span className="font-semibold truncate max-w-[130px]">{instituteName}</span>
           </div>
 
           <div className="flex justify-between items-baseline border-b border-dotted border-black/40 pb-0.5">
@@ -159,6 +167,10 @@ export const PrintableChallan = forwardRef<HTMLDivElement, ChallanProps>(
 
         <div className="text-center text-[8px] font-bold text-black">
           ⎯⎯⎯⎯⎯⎯⎯ JAZAKALLAH ⎯⎯⎯⎯⎯⎯⎯
+        </div>
+
+        <div className="text-center text-[7px] text-black font-semibold mt-1 border-t border-dotted border-black/40 pt-0.5">
+          Software provided by EagleNest Creations (0346-4451505)
         </div>
       </div>
     );

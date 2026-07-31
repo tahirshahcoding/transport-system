@@ -210,6 +210,7 @@ export type VehicleWhereInput = {
   routeId?: Prisma.StringNullableFilter<"Vehicle"> | string | null
   route?: Prisma.XOR<Prisma.RouteNullableScalarRelationFilter, Prisma.RouteWhereInput> | null
   students?: Prisma.StudentListRelationFilter
+  expenses?: Prisma.ExpenseListRelationFilter
 }
 
 export type VehicleOrderByWithRelationInput = {
@@ -219,6 +220,7 @@ export type VehicleOrderByWithRelationInput = {
   routeId?: Prisma.SortOrderInput | Prisma.SortOrder
   route?: Prisma.RouteOrderByWithRelationInput
   students?: Prisma.StudentOrderByRelationAggregateInput
+  expenses?: Prisma.ExpenseOrderByRelationAggregateInput
 }
 
 export type VehicleWhereUniqueInput = Prisma.AtLeast<{
@@ -231,6 +233,7 @@ export type VehicleWhereUniqueInput = Prisma.AtLeast<{
   routeId?: Prisma.StringNullableFilter<"Vehicle"> | string | null
   route?: Prisma.XOR<Prisma.RouteNullableScalarRelationFilter, Prisma.RouteWhereInput> | null
   students?: Prisma.StudentListRelationFilter
+  expenses?: Prisma.ExpenseListRelationFilter
 }, "id">
 
 export type VehicleOrderByWithAggregationInput = {
@@ -261,6 +264,7 @@ export type VehicleCreateInput = {
   capacity?: number | null
   route?: Prisma.RouteCreateNestedOneWithoutVehiclesInput
   students?: Prisma.StudentCreateNestedManyWithoutVehicleInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutVehicleInput
 }
 
 export type VehicleUncheckedCreateInput = {
@@ -269,6 +273,7 @@ export type VehicleUncheckedCreateInput = {
   capacity?: number | null
   routeId?: string | null
   students?: Prisma.StudentUncheckedCreateNestedManyWithoutVehicleInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutVehicleInput
 }
 
 export type VehicleUpdateInput = {
@@ -277,6 +282,7 @@ export type VehicleUpdateInput = {
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   route?: Prisma.RouteUpdateOneWithoutVehiclesNestedInput
   students?: Prisma.StudentUpdateManyWithoutVehicleNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutVehicleNestedInput
 }
 
 export type VehicleUncheckedUpdateInput = {
@@ -285,6 +291,7 @@ export type VehicleUncheckedUpdateInput = {
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   students?: Prisma.StudentUncheckedUpdateManyWithoutVehicleNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
 }
 
 export type VehicleCreateManyInput = {
@@ -417,11 +424,28 @@ export type VehicleUpdateOneWithoutStudentsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.VehicleUpdateToOneWithWhereWithoutStudentsInput, Prisma.VehicleUpdateWithoutStudentsInput>, Prisma.VehicleUncheckedUpdateWithoutStudentsInput>
 }
 
+export type VehicleCreateNestedOneWithoutExpensesInput = {
+  create?: Prisma.XOR<Prisma.VehicleCreateWithoutExpensesInput, Prisma.VehicleUncheckedCreateWithoutExpensesInput>
+  connectOrCreate?: Prisma.VehicleCreateOrConnectWithoutExpensesInput
+  connect?: Prisma.VehicleWhereUniqueInput
+}
+
+export type VehicleUpdateOneWithoutExpensesNestedInput = {
+  create?: Prisma.XOR<Prisma.VehicleCreateWithoutExpensesInput, Prisma.VehicleUncheckedCreateWithoutExpensesInput>
+  connectOrCreate?: Prisma.VehicleCreateOrConnectWithoutExpensesInput
+  upsert?: Prisma.VehicleUpsertWithoutExpensesInput
+  disconnect?: Prisma.VehicleWhereInput | boolean
+  delete?: Prisma.VehicleWhereInput | boolean
+  connect?: Prisma.VehicleWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.VehicleUpdateToOneWithWhereWithoutExpensesInput, Prisma.VehicleUpdateWithoutExpensesInput>, Prisma.VehicleUncheckedUpdateWithoutExpensesInput>
+}
+
 export type VehicleCreateWithoutRouteInput = {
   id?: string
   registrationNumber: string
   capacity?: number | null
   students?: Prisma.StudentCreateNestedManyWithoutVehicleInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutVehicleInput
 }
 
 export type VehicleUncheckedCreateWithoutRouteInput = {
@@ -429,6 +453,7 @@ export type VehicleUncheckedCreateWithoutRouteInput = {
   registrationNumber: string
   capacity?: number | null
   students?: Prisma.StudentUncheckedCreateNestedManyWithoutVehicleInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutVehicleInput
 }
 
 export type VehicleCreateOrConnectWithoutRouteInput = {
@@ -472,6 +497,7 @@ export type VehicleCreateWithoutStudentsInput = {
   registrationNumber: string
   capacity?: number | null
   route?: Prisma.RouteCreateNestedOneWithoutVehiclesInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutVehicleInput
 }
 
 export type VehicleUncheckedCreateWithoutStudentsInput = {
@@ -479,6 +505,7 @@ export type VehicleUncheckedCreateWithoutStudentsInput = {
   registrationNumber: string
   capacity?: number | null
   routeId?: string | null
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutVehicleInput
 }
 
 export type VehicleCreateOrConnectWithoutStudentsInput = {
@@ -502,6 +529,7 @@ export type VehicleUpdateWithoutStudentsInput = {
   registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   route?: Prisma.RouteUpdateOneWithoutVehiclesNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutVehicleNestedInput
 }
 
 export type VehicleUncheckedUpdateWithoutStudentsInput = {
@@ -509,6 +537,55 @@ export type VehicleUncheckedUpdateWithoutStudentsInput = {
   registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
+}
+
+export type VehicleCreateWithoutExpensesInput = {
+  id?: string
+  registrationNumber: string
+  capacity?: number | null
+  route?: Prisma.RouteCreateNestedOneWithoutVehiclesInput
+  students?: Prisma.StudentCreateNestedManyWithoutVehicleInput
+}
+
+export type VehicleUncheckedCreateWithoutExpensesInput = {
+  id?: string
+  registrationNumber: string
+  capacity?: number | null
+  routeId?: string | null
+  students?: Prisma.StudentUncheckedCreateNestedManyWithoutVehicleInput
+}
+
+export type VehicleCreateOrConnectWithoutExpensesInput = {
+  where: Prisma.VehicleWhereUniqueInput
+  create: Prisma.XOR<Prisma.VehicleCreateWithoutExpensesInput, Prisma.VehicleUncheckedCreateWithoutExpensesInput>
+}
+
+export type VehicleUpsertWithoutExpensesInput = {
+  update: Prisma.XOR<Prisma.VehicleUpdateWithoutExpensesInput, Prisma.VehicleUncheckedUpdateWithoutExpensesInput>
+  create: Prisma.XOR<Prisma.VehicleCreateWithoutExpensesInput, Prisma.VehicleUncheckedCreateWithoutExpensesInput>
+  where?: Prisma.VehicleWhereInput
+}
+
+export type VehicleUpdateToOneWithWhereWithoutExpensesInput = {
+  where?: Prisma.VehicleWhereInput
+  data: Prisma.XOR<Prisma.VehicleUpdateWithoutExpensesInput, Prisma.VehicleUncheckedUpdateWithoutExpensesInput>
+}
+
+export type VehicleUpdateWithoutExpensesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  route?: Prisma.RouteUpdateOneWithoutVehiclesNestedInput
+  students?: Prisma.StudentUpdateManyWithoutVehicleNestedInput
+}
+
+export type VehicleUncheckedUpdateWithoutExpensesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  routeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  students?: Prisma.StudentUncheckedUpdateManyWithoutVehicleNestedInput
 }
 
 export type VehicleCreateManyRouteInput = {
@@ -522,6 +599,7 @@ export type VehicleUpdateWithoutRouteInput = {
   registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   students?: Prisma.StudentUpdateManyWithoutVehicleNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutVehicleNestedInput
 }
 
 export type VehicleUncheckedUpdateWithoutRouteInput = {
@@ -529,6 +607,7 @@ export type VehicleUncheckedUpdateWithoutRouteInput = {
   registrationNumber?: Prisma.StringFieldUpdateOperationsInput | string
   capacity?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   students?: Prisma.StudentUncheckedUpdateManyWithoutVehicleNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutVehicleNestedInput
 }
 
 export type VehicleUncheckedUpdateManyWithoutRouteInput = {
@@ -544,10 +623,12 @@ export type VehicleUncheckedUpdateManyWithoutRouteInput = {
 
 export type VehicleCountOutputType = {
   students: number
+  expenses: number
 }
 
 export type VehicleCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   students?: boolean | VehicleCountOutputTypeCountStudentsArgs
+  expenses?: boolean | VehicleCountOutputTypeCountExpensesArgs
 }
 
 /**
@@ -567,6 +648,13 @@ export type VehicleCountOutputTypeCountStudentsArgs<ExtArgs extends runtime.Type
   where?: Prisma.StudentWhereInput
 }
 
+/**
+ * VehicleCountOutputType without action
+ */
+export type VehicleCountOutputTypeCountExpensesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ExpenseWhereInput
+}
+
 
 export type VehicleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -575,6 +663,7 @@ export type VehicleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   routeId?: boolean
   route?: boolean | Prisma.Vehicle$routeArgs<ExtArgs>
   students?: boolean | Prisma.Vehicle$studentsArgs<ExtArgs>
+  expenses?: boolean | Prisma.Vehicle$expensesArgs<ExtArgs>
   _count?: boolean | Prisma.VehicleCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["vehicle"]>
 
@@ -605,6 +694,7 @@ export type VehicleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
 export type VehicleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   route?: boolean | Prisma.Vehicle$routeArgs<ExtArgs>
   students?: boolean | Prisma.Vehicle$studentsArgs<ExtArgs>
+  expenses?: boolean | Prisma.Vehicle$expensesArgs<ExtArgs>
   _count?: boolean | Prisma.VehicleCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type VehicleIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -619,6 +709,7 @@ export type $VehiclePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   objects: {
     route: Prisma.$RoutePayload<ExtArgs> | null
     students: Prisma.$StudentPayload<ExtArgs>[]
+    expenses: Prisma.$ExpensePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1021,6 +1112,7 @@ export interface Prisma__VehicleClient<T, Null = never, ExtArgs extends runtime.
   readonly [Symbol.toStringTag]: "PrismaPromise"
   route<T extends Prisma.Vehicle$routeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Vehicle$routeArgs<ExtArgs>>): Prisma.Prisma__RouteClient<runtime.Types.Result.GetResult<Prisma.$RoutePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   students<T extends Prisma.Vehicle$studentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Vehicle$studentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  expenses<T extends Prisma.Vehicle$expensesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Vehicle$expensesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1495,6 +1587,30 @@ export type Vehicle$studentsArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.StudentScalarFieldEnum | Prisma.StudentScalarFieldEnum[]
+}
+
+/**
+ * Vehicle.expenses
+ */
+export type Vehicle$expensesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Expense
+   */
+  select?: Prisma.ExpenseSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Expense
+   */
+  omit?: Prisma.ExpenseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ExpenseInclude<ExtArgs> | null
+  where?: Prisma.ExpenseWhereInput
+  orderBy?: Prisma.ExpenseOrderByWithRelationInput | Prisma.ExpenseOrderByWithRelationInput[]
+  cursor?: Prisma.ExpenseWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ExpenseScalarFieldEnum | Prisma.ExpenseScalarFieldEnum[]
 }
 
 /**

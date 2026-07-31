@@ -68,6 +68,11 @@ export type Challan = Prisma.ChallanModel
  */
 export type Payment = Prisma.PaymentModel
 /**
+ * Model Expense
+ * 
+ */
+export type Expense = Prisma.ExpenseModel
+/**
  * Model Settings
  * 
  */

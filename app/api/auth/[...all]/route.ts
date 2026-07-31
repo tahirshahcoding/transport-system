@@ -1,4 +1,5 @@
-import { auth } from "@/lib/auth";
+import { NextResponse } from "next/server";
 
-export const GET = auth.handler;
-export const POST = auth.handler;
+export async function GET() {
+  return NextResponse.json({ status: "ok" });
+}

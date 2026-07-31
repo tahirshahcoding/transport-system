@@ -227,6 +227,7 @@ export async function addVehicle(data: { registration: string; capacity: number;
   });
 
   revalidatePath("/vehicles");
+  revalidatePath("/students");
   revalidatePath("/");
 }
 
@@ -259,6 +260,7 @@ export async function deleteVehicle(id: string) {
 
   revalidatePath("/vehicles");
   revalidatePath("/routes");
+  revalidatePath("/students");
   revalidatePath("/");
 }
 
@@ -270,6 +272,7 @@ export async function addInstitute(data: { name: string }) {
   });
 
   revalidatePath("/institutes");
+  revalidatePath("/students");
   revalidatePath("/");
 }
 
@@ -321,6 +324,7 @@ export async function addRoute(data: { name: string; fee: number }) {
   });
 
   revalidatePath("/routes");
+  revalidatePath("/students");
   revalidatePath("/");
 }
 
@@ -390,14 +394,17 @@ export async function seedDatabase() {
   ]);
 
   // Generate Challans
+  const seedNow = new Date();
+  const seedMonth = seedNow.toLocaleString('default', { month: 'long', year: 'numeric' });
+  const seedDueDate = new Date(seedNow.getFullYear(), seedNow.getMonth(), 15);
   for (const student of students) {
     const fee = student.routeId === r1.id ? 2500 : student.routeId === r2.id ? 3000 : 3500;
     await prisma.challan.create({
       data: {
         studentId: student.id,
         amount: fee,
-        month: "August 2026",
-        dueDate: new Date("2026-08-15"),
+        month: seedMonth,
+        dueDate: seedDueDate,
         status: "UNPAID"
       }
     });
@@ -468,6 +475,7 @@ export async function generateChallans(targetMonth?: string) {
     where: {
       studentId: { in: studentIds },
       status: { in: ["UNPAID", "PARTIAL"] },
+      month: { not: monthName },
     },
     include: { payments: { select: { amount: true } } }
   });
@@ -571,4 +579,93 @@ export async function deleteChallan(id: string) {
   revalidatePath("/");
   revalidatePath("/finance");
   revalidatePath("/students");
+}
+
+export async function addExpense(data: {
+  title: string;
+  category: string;
+  amount: number;
+  month?: string;
+  vehicleId?: string;
+  notes?: string;
+  date?: string;
+}) {
+  if (!data.title || data.title.trim().length === 0) {
+    throw new Error("Expense title is required.");
+  }
+  if (isNaN(data.amount) || data.amount <= 0) {
+    throw new Error("Amount must be greater than zero.");
+  }
+
+  const now = data.date ? new Date(data.date) : new Date();
+  const monthName = data.month || now.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+  await prisma.expense.create({
+    data: {
+      title: data.title.trim(),
+      category: data.category || "Maintenance",
+      amount: data.amount,
+      month: monthName,
+      date: now,
+      vehicleId: data.vehicleId || null,
+      notes: data.notes?.trim() || "",
+    }
+  });
+
+  revalidatePath("/");
+  revalidatePath("/finance");
+  revalidatePath("/expenses");
+}
+
+export async function updateExpense(id: string, data: {
+  title: string;
+  category: string;
+  amount: number;
+  month?: string;
+  vehicleId?: string;
+  notes?: string;
+  date?: string;
+}) {
+  if (!data.title || data.title.trim().length === 0) {
+    throw new Error("Expense title is required.");
+  }
+  if (isNaN(data.amount) || data.amount <= 0) {
+    throw new Error("Amount must be greater than zero.");
+  }
+
+  const updatePayload: {
+    title: string;
+    category: string;
+    amount: number;
+    vehicleId: string | null;
+    notes: string;
+    month?: string;
+    date?: Date;
+  } = {
+    title: data.title.trim(),
+    category: data.category || "Maintenance",
+    amount: data.amount,
+    vehicleId: data.vehicleId || null,
+    notes: data.notes?.trim() || "",
+  };
+
+  if (data.month) updatePayload.month = data.month;
+  if (data.date) updatePayload.date = new Date(data.date);
+
+  await prisma.expense.update({
+    where: { id },
+    data: updatePayload,
+  });
+
+  revalidatePath("/");
+  revalidatePath("/finance");
+  revalidatePath("/expenses");
+}
+
+export async function deleteExpense(id: string) {
+  await prisma.expense.delete({ where: { id } });
+
+  revalidatePath("/");
+  revalidatePath("/finance");
+  revalidatePath("/expenses");
 }

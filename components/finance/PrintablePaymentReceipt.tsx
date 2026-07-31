@@ -6,6 +6,8 @@ export function PrintablePaymentReceipt({
   studentName,
   fatherName = "—",
   className,
+  studentClass,
+  instituteName = "General Campus",
   route,
   month,
   amountPaid,
@@ -15,7 +17,9 @@ export function PrintablePaymentReceipt({
 }: {
   studentName: string;
   fatherName?: string;
-  className: string;
+  className?: string;
+  studentClass?: string;
+  instituteName?: string;
   route: string;
   month: string;
   amountPaid: number;
@@ -23,7 +27,8 @@ export function PrintablePaymentReceipt({
   method: string;
   receiptNo?: string;
 }) {
-  const displayReceiptNo = receiptNo || `PAY-${Math.floor(1000 + Math.random() * 9000)}`;
+  const displayClass = studentClass || className || "—";
+  const displayReceiptNo = receiptNo || `PAY-${month.replace(/\s+/g, "").slice(0, 3).toUpperCase()}-${studentName.slice(0, 3).toUpperCase()}`;
 
   return (
     <div
@@ -73,8 +78,13 @@ export function PrintablePaymentReceipt({
         </div>
 
         <div className="flex justify-between items-baseline border-b border-dotted border-black/40 pb-0.5">
+          <span className="font-bold min-w-[70px]">Class / Grade :</span>
+          <span className="font-semibold truncate max-w-[130px]">{displayClass}</span>
+        </div>
+
+        <div className="flex justify-between items-baseline border-b border-dotted border-black/40 pb-0.5">
           <span className="font-bold min-w-[70px]">Institute :</span>
-          <span className="font-semibold truncate max-w-[130px]">{className}</span>
+          <span className="font-semibold truncate max-w-[130px]">{instituteName}</span>
         </div>
 
         <div className="flex justify-between items-baseline border-b border-dotted border-black/40 pb-0.5">
@@ -128,6 +138,10 @@ export function PrintablePaymentReceipt({
 
       <div className="text-center text-[8px] font-bold text-black">
         ⎯⎯⎯⎯⎯⎯⎯ JAZAKALLAH ⎯⎯⎯⎯⎯⎯⎯
+      </div>
+
+      <div className="text-center text-[7px] text-black font-semibold mt-1 border-t border-dotted border-black/40 pt-0.5">
+        Software provided by EagleNest Creations (0346-4451505)
       </div>
     </div>
   );

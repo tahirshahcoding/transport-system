@@ -142,3 +142,37 @@
     user-select: auto;
   }
 }
+
+@media print {
+  @page {
+    size: 58mm auto;
+    margin: 0mm;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+  }
+
+  /* Hide normal web app UI elements when printing */
+  nav, aside, header, footer, .print\:hidden {
+    display: none !important;
+  }
+
+  /* Ensure printable voucher containers take full priority */
+  .print\:block {
+    display: block !important;
+    position: relative !important;
+    width: 58mm !important;
+    margin: 0 auto !important;
+    z-index: 99999 !important;
+  }
+}

@@ -14,7 +14,7 @@ type Vehicle = {
   id: string;
   registrationNumber: string;
   capacity: number | null;
-  route: { name: string } | null;
+  route: { id: string; name: string } | null;
   _count: { students: number };
 };
 
@@ -32,9 +32,13 @@ export function VehiclesClient({ initialVehicles, availableRoutes = [] }: { init
     }
   }, [searchParams]);
 
-  const filteredVehicles = initialVehicles.filter(v =>
-    v.registrationNumber.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredVehicles = initialVehicles.filter((v) => {
+    const q = search.trim().toLowerCase();
+    return q
+      ? v.registrationNumber.toLowerCase().includes(q) ||
+        (v.route && v.route.name.toLowerCase().includes(q))
+      : true;
+  });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -127,7 +131,7 @@ export function VehiclesClient({ initialVehicles, availableRoutes = [] }: { init
                 <select 
                   id="edit-routeId" 
                   name="routeId" 
-                  defaultValue={availableRoutes.find(r => r.name === editingVehicle.route?.name)?.id || ""}
+                  defaultValue={editingVehicle.route?.id || ""}
                   className="w-full rounded-xl bg-slate-50 border-slate-200 h-10 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2"
                 >
                   <option value="">-- No Route Assigned --</option>

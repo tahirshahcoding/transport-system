@@ -61,6 +61,7 @@ export const ModelName = {
   Student: 'Student',
   Challan: 'Challan',
   Payment: 'Payment',
+  Expense: 'Expense',
   Settings: 'Settings'
 } as const
 
@@ -203,6 +204,20 @@ export const PaymentScalarFieldEnum = {
 } as const
 
 export type PaymentScalarFieldEnum = (typeof PaymentScalarFieldEnum)[keyof typeof PaymentScalarFieldEnum]
+
+
+export const ExpenseScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  category: 'category',
+  amount: 'amount',
+  month: 'month',
+  date: 'date',
+  vehicleId: 'vehicleId',
+  notes: 'notes'
+} as const
+
+export type ExpenseScalarFieldEnum = (typeof ExpenseScalarFieldEnum)[keyof typeof ExpenseScalarFieldEnum]
 
 
 export const SettingsScalarFieldEnum = {

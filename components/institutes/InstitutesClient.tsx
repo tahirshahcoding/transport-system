@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Building2, Plus, Search, MapPin, Pencil, Trash2 } from "lucide-react";
+import { Building2, Plus, Search, MapPin, Pencil, Trash2, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ export function InstitutesClient({ initialInstitutes }: { initialInstitutes: Ins
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [editingInstitute, setEditingInstitute] = useState<Institute | null>(null);
+  const [pendingInstituteId, setPendingInstituteId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const dialog = useAppDialog();
 
@@ -57,8 +58,13 @@ export function InstitutesClient({ initialInstitutes }: { initialInstitutes: Ins
       `Are you sure you want to delete "${institute.name}"? Students will be reassigned.`
     );
     if (confirmed) {
+      setPendingInstituteId(institute.id);
       startTransition(async () => {
-        await deleteInstitute(institute.id);
+        try {
+          await deleteInstitute(institute.id);
+        } finally {
+          setPendingInstituteId(null);
+        }
       });
     }
   };
@@ -156,10 +162,10 @@ export function InstitutesClient({ initialInstitutes }: { initialInstitutes: Ins
                       </button>
                       <button
                         onClick={() => handleDelete(institute)}
-                        className="text-red-400 p-1.5 hover:text-red-600 transition-colors bg-red-50 rounded-lg h-7 w-7 flex items-center justify-center"
-                        disabled={isPending}
+                        className="text-red-400 p-1.5 hover:text-red-600 transition-colors bg-red-50 rounded-lg h-7 w-7 flex items-center justify-center disabled:opacity-50"
+                        disabled={pendingInstituteId === institute.id}
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        {pendingInstituteId === institute.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                       </button>
                     </div>
                   </div>

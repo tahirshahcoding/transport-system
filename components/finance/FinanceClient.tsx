@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useState, useTransition, useEffect } from "react";
-import { FileText, CreditCard, Printer, ArrowUpRight, CheckCircle, Loader2, MessageCircle, Send, Calendar, Search, Trash2 } from "lucide-react";
+import { FileText, CreditCard, Printer, ArrowUpRight, CheckCircle, Loader2, MessageCircle, Send, Calendar, Search, Trash2, Receipt } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,7 @@ type Challan = {
     fatherName: string;
     mobileNumber: string;
     class: string;
+    institute?: { name: string } | null;
     route: { name: string } | null;
   };
   payments: { amount: number }[];
@@ -42,6 +43,7 @@ type Payment = {
     name: string;
     fatherName?: string;
     class: string;
+    institute?: { name: string } | null;
     route: { name: string } | null;
   };
   challan: { month: string };
@@ -174,6 +176,12 @@ export function FinanceClient({
       if (!input) return;
       phone = input.trim();
     }
+
+    // Clean phone number format for WhatsApp API
+    phone = phone.replace(/[^0-9]/g, "");
+    if (phone.startsWith("0")) {
+      phone = "92" + phone.slice(1);
+    }
     const amount = challan.amount;
     const arrears = challan.arrears;
     const totalPaid = challan.payments.reduce((sum, p) => sum + p.amount, 0);
@@ -240,11 +248,12 @@ export function FinanceClient({
   const paidCount = allChallans.filter(c => c.status === "PAID").length;
 
   return (
-    <div className="px-4 pt-4 pb-4 max-w-lg mx-auto md:max-w-5xl md:px-8 md:pt-8 print:max-w-none print:p-0">
-      {/* Header */}
-      <div className="mb-5 print:hidden">
-        <h2 className="text-lg font-bold font-outfit text-slate-900">Finance / Accounts</h2>
-      </div>
+    <>
+      <div className="px-4 pt-4 pb-4 max-w-lg mx-auto md:max-w-5xl md:px-8 md:pt-8 print:hidden">
+        {/* Header */}
+        <div>
+          <h2 className="text-lg font-bold font-outfit text-slate-900">Finance / Accounts</h2>
+        </div>
 
       {/* Tabs */}
       <div className="flex gap-0 border-b border-slate-200 mb-5 print:hidden">
@@ -256,7 +265,12 @@ export function FinanceClient({
           return (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                setActiveTab(tab);
+                setSearch("");
+                setFilterMonth("");
+                setFilterStatus("");
+              }}
               className={cn(
                 "flex-1 text-xs font-semibold py-3 text-center transition-colors border-b-2 flex items-center justify-center gap-1.5",
                 activeTab === tab
@@ -310,36 +324,45 @@ export function FinanceClient({
                 <span className="ml-1">still pending</span>
               </div>
               <div className="mt-4 -mx-1">
-                <OverviewChart />
+                <OverviewChart data={allPayments.slice().reverse().map(p => ({
+                  name: p.challan.month.split(" ")[0].slice(0, 3),
+                  total: p.amount
+                }))} />
               </div>
             </div>
 
             {/* Quick Actions */}
             <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
               <p className="text-xs font-semibold text-slate-700 mb-4">Quick Actions</p>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-4 gap-2 text-center">
                 <button 
                   onClick={handleOpenGenerateModal} 
                   disabled={isPending}
                   className="flex flex-col items-center gap-2 group disabled:opacity-50"
                 >
-                  <div className="bg-blue-50 p-4 rounded-2xl group-hover:bg-blue-100 transition-colors">
-                    {isPending ? <Loader2 className="h-6 w-6 text-blue-600 animate-spin" /> : <FileText className="h-6 w-6 text-blue-600" />}
+                  <div className="bg-blue-50 p-3.5 rounded-2xl group-hover:bg-blue-100 transition-colors w-full flex items-center justify-center aspect-square">
+                    {isPending ? <Loader2 className="h-5 w-5 text-blue-600 animate-spin" /> : <FileText className="h-5 w-5 text-blue-600" />}
                   </div>
                   <span className="text-[10px] font-semibold text-slate-600 text-center leading-tight">Generate<br />Challans</span>
                 </button>
                 <button onClick={() => setActiveTab("Challans")} className="flex flex-col items-center gap-2 group">
-                  <div className="bg-green-50 p-4 rounded-2xl group-hover:bg-green-100 transition-colors">
-                    <CreditCard className="h-6 w-6 text-green-600" />
+                  <div className="bg-green-50 p-3.5 rounded-2xl group-hover:bg-green-100 transition-colors w-full flex items-center justify-center aspect-square">
+                    <CreditCard className="h-5 w-5 text-green-600" />
                   </div>
                   <span className="text-[10px] font-semibold text-slate-600 text-center leading-tight">Record<br />Payment</span>
                 </button>
                 <button onClick={() => setActiveTab("Payments")} className="flex flex-col items-center gap-2 group">
-                  <div className="bg-orange-50 p-4 rounded-2xl group-hover:bg-orange-100 transition-colors">
-                    <Printer className="h-6 w-6 text-orange-500" />
+                  <div className="bg-orange-50 p-3.5 rounded-2xl group-hover:bg-orange-100 transition-colors w-full flex items-center justify-center aspect-square">
+                    <Printer className="h-5 w-5 text-orange-500" />
                   </div>
                   <span className="text-[10px] font-semibold text-slate-600 text-center leading-tight">Payment<br />History</span>
                 </button>
+                <a href="/expenses" className="flex flex-col items-center gap-2 group">
+                  <div className="bg-rose-50 p-3.5 rounded-2xl group-hover:bg-rose-100 transition-colors w-full flex items-center justify-center aspect-square">
+                    <Receipt className="h-5 w-5 text-rose-600" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-slate-600 text-center leading-tight">Manage<br />Expenses</span>
+                </a>
               </div>
             </div>
 
@@ -642,29 +665,33 @@ export function FinanceClient({
       </Dialog>
 
       {/* Print container */}
-      <div className="hidden print:block absolute top-0 left-0">
+      <div className="hidden print:block font-sans text-black">
         {selectedChallan && (
           <PrintableChallan
             studentName={selectedChallan.student.name}
             fatherName={selectedChallan.student.fatherName || "—"}
-            className={selectedChallan.student.class}
+            studentClass={selectedChallan.student.class}
+            instituteName={selectedChallan.student.institute?.name || "General Campus"}
             route={selectedChallan.student.route?.name || "N/A"}
             month={selectedChallan.month}
             fee={selectedChallan.amount}
             arrears={selectedChallan.arrears}
             status={selectedChallan.status}
+            receiptNo={`CH-${selectedChallan.id.slice(-6).toUpperCase()}`}
           />
         )}
         {selectedPayment && (
           <PrintablePaymentReceipt
             studentName={selectedPayment.student.name}
             fatherName={selectedPayment.student.fatherName || "—"}
-            className={selectedPayment.student.class}
+            studentClass={selectedPayment.student.class}
+            instituteName={selectedPayment.student.institute?.name || "General Campus"}
             route={selectedPayment.student.route?.name || "N/A"}
             month={selectedPayment.challan.month}
             amountPaid={selectedPayment.amount}
             date={new Date(selectedPayment.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
             method={selectedPayment.method || "Cash"}
+            receiptNo={`PAY-${selectedPayment.id.slice(-6).toUpperCase()}`}
           />
         )}
       </div>
@@ -731,5 +758,6 @@ export function FinanceClient({
         </DialogContent>
       </Dialog>
     </div>
-  );
+  </>
+);
 }

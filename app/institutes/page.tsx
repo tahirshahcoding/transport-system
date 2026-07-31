@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { InstitutesClient } from "@/components/institutes/InstitutesClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function InstitutesPage() {
   const institutes = await prisma.institute.findMany({
     include: {

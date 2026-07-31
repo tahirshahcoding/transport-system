@@ -74,21 +74,29 @@ export function StudentsClient({
   }, [searchParams]);
 
   const filteredStudents = initialStudents.filter(s => {
-    const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
-    const matchesInstitute = filterInstitute ? s.institute.name === availableInstitutes.find(i => i.id === filterInstitute)?.name : true;
-    const matchesRoute = filterRoute ? s.route?.name === availableRoutes.find(r => r.id === filterRoute)?.name : true;
-    const matchesVehicle = filterVehicle ? s.vehicle?.registrationNumber === availableVehicles.find(v => v.id === filterVehicle)?.registrationNumber : true;
+    const q = search.trim().toLowerCase();
+    const matchesSearch = q
+      ? s.name.toLowerCase().includes(q) ||
+        (s.fatherName && s.fatherName.toLowerCase().includes(q)) ||
+        (s.mobileNumber && s.mobileNumber.toLowerCase().includes(q)) ||
+        s.class.toLowerCase().includes(q)
+      : true;
+    const matchesInstitute = filterInstitute ? s.institute.id === filterInstitute : true;
+    const matchesRoute = filterRoute ? s.route?.id === filterRoute : true;
+    const matchesVehicle = filterVehicle ? s.vehicle?.id === filterVehicle : true;
     const matchesStatus = filterStatus ? s.status === filterStatus : true;
     return matchesSearch && matchesInstitute && matchesRoute && matchesVehicle && matchesStatus;
   });
 
-  const vehiclesForSelectedRoute = selectedRouteId 
-    ? availableVehicles.filter(v => v.routeId === selectedRouteId)
-    : availableVehicles;
+  const getVehiclesForRoute = (routeId: string) => {
+    if (!routeId) return availableVehicles;
+    const matching = availableVehicles.filter(v => v.routeId === routeId);
+    const others = availableVehicles.filter(v => v.routeId !== routeId);
+    return [...matching, ...others];
+  };
 
-  const vehiclesForEditRoute = editSelectedRouteId 
-    ? availableVehicles.filter(v => v.routeId === editSelectedRouteId)
-    : availableVehicles;
+  const vehiclesForSelectedRoute = getVehiclesForRoute(selectedRouteId);
+  const vehiclesForEditRoute = getVehiclesForRoute(editSelectedRouteId);
 
   const handleCreateSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -221,7 +229,6 @@ export function StudentsClient({
                   id="vehicleId" 
                   name="vehicleId" 
                   className="w-full rounded-xl bg-slate-50 border-slate-200 h-10 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2"
-                  disabled={!selectedRouteId && availableVehicles.length > 0}
                 >
                   <option value="">-- No Vehicle Assigned --</option>
                   {vehiclesForSelectedRoute.map(v => (
@@ -553,8 +560,9 @@ export function StudentsClient({
                       } else {
                         await dialog.showSuccess("Notice", res.message || `Challan for ${targetMonthStr} already exists.`);
                       }
-                    } catch (err: any) {
-                      await dialog.showAlert("Error", err.message || "Failed to generate challan.");
+                    } catch (err: unknown) {
+                      const message = err instanceof Error ? err.message : "Failed to generate challan.";
+                      await dialog.showAlert("Error", message);
                     }
                   });
                 }}

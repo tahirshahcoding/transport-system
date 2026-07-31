@@ -51,8 +51,31 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   // Prevent flash of protected content while checking
   if (isChecking || !isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#f8f9fb] flex flex-col items-center justify-center p-4 select-none">
+        <div className="flex flex-col items-center text-center space-y-3">
+          {/* Logo Card */}
+          <div className="w-16 h-16 flex items-center justify-center bg-white rounded-2xl p-2.5 border border-slate-100 shadow-sm">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo.png"
+              alt="Transport System Logo"
+              className="w-11 h-11 object-contain animate-pulse"
+            />
+          </div>
+
+          {/* Titles */}
+          <div>
+            <h1 className="text-base font-bold font-outfit text-slate-900 tracking-tight">
+              RAHIM TRAVEL
+            </h1>
+            <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+              Transport Management System
+            </p>
+          </div>
+
+          {/* Simple Spinner */}
+          <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mt-1" />
+        </div>
       </div>
     );
   }

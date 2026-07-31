@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Home, Building2, Users, CreditCard, MoreHorizontal, Bus, Map, Settings, LogOut } from "lucide-react";
+import { Home, Building2, Users, CreditCard, MoreHorizontal, Bus, Map, Settings, Receipt, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { logoutUser } from "@/app/actions";
@@ -18,6 +18,7 @@ const mobileNavItems = [
 ];
 
 const extraItems = [
+  { name: "Expenses", href: "/expenses", icon: Receipt },
   { name: "Routes", href: "/routes", icon: Map },
   { name: "Vehicles", href: "/vehicles", icon: Bus },
   { name: "Settings", href: "/settings", icon: Settings },

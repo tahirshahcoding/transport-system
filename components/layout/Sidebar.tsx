@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useTransition } from "react";
-import { Home, Building2, Users, Bus, Map, Settings, CreditCard, LogOut } from "lucide-react";
+import { Home, Building2, Users, Bus, Map, Settings, CreditCard, Receipt, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logoutUser } from "@/app/actions";
 
@@ -15,6 +15,7 @@ const navItems = [
   { name: "Vehicles", href: "/vehicles", icon: Bus },
   { name: "Routes", href: "/routes", icon: Map },
   { name: "Finance", href: "/finance", icon: CreditCard },
+  { name: "Expenses", href: "/expenses", icon: Receipt },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
