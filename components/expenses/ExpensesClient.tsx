@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { addExpense, updateExpense, deleteExpense } from "@/app/actions";
 import { useAppDialog } from "@/components/ui/app-dialog";
-import { cn, printPdf } from "@/lib/utils";
+import { cn, printImage } from "@/lib/utils";
 import { PrintableSalaryVoucher } from "./PrintableSalaryVoucher";
 
 const EXPENSE_CATEGORIES = [
@@ -74,7 +74,7 @@ export function ExpensesClient({
   const handlePrint = async (exp: Expense) => {
     setPrintingExpenseId(exp.id);
     try {
-      await printPdf(`/api/pdf/expense?id=${exp.id}`, `expense-voucher-${exp.id}.pdf`);
+      await printImage(`/api/print/expense?id=${exp.id}`, `expense-voucher-${exp.id}.png`);
     } finally {
       setPrintingExpenseId(null);
     }

@@ -23,16 +23,21 @@ export default async function PrintExpensePage({
   return (
     <>
       <style>{`
-        @page {
-          size: 58mm auto;
-          margin: 0;
-        }
         body {
           margin: 0;
           padding: 0;
+          font-size: 13px;
+          color: black;
+          background: white;
+        }
+        .thermal-receipt {
+          width: 384px;
+          margin: 0 auto;
+          background: white;
+          color: black;
         }
       `}</style>
-      <div className="flex flex-col items-center justify-start h-fit bg-white">
+      <div className="thermal-receipt flex flex-col items-center justify-start h-fit">
         <PrintableSalaryVoucher
           title={expense.title}
           category={expense.category}

@@ -7,27 +7,23 @@ export async function GET(request: Request) {
   const id = searchParams.get("id");
 
   if (!id) {
-    return new NextResponse("Missing expense ID", { status: 400 });
+    return new NextResponse("Missing challan ID", { status: 400 });
   }
 
   try {
-    // Construct the URL to print
     const protocol = request.headers.get("x-forwarded-proto") || "http";
     const host = request.headers.get("host") || "localhost:3000";
     const baseUrl = `${protocol}://${host}`;
-    const printUrl = `${baseUrl}/print/expense/${id}`;
+    const printUrl = `${baseUrl}/print/challan/${id}`;
 
     let browser;
-    // Check if we are running in local development
     if (process.env.NODE_ENV === "development") {
-      // In development, require the standard puppeteer package (installed as devDependency)
       const puppeteerDev = (await import("puppeteer")).default;
       browser = await puppeteerDev.launch({
         headless: true,
         args: ["--no-sandbox", "--disable-setuid-sandbox"],
       });
     } else {
-      // In production (Vercel), use sparticuz/chromium-min and puppeteer-core
       browser = await puppeteerCore.launch({
         args: chromium.args,
         executablePath: await chromium.executablePath(
@@ -39,10 +35,7 @@ export async function GET(request: Request) {
 
     const page = await browser.newPage();
     
-    // Set viewport to a typical desktop size
-    await page.setViewport({ width: 1200, height: 800 });
-
-    // Forward cookies to bypass authentication
+    // Forward cookies
     const cookieHeader = request.headers.get("cookie");
     if (cookieHeader) {
       const cookies = cookieHeader.split(";").map((c) => {
@@ -50,48 +43,40 @@ export async function GET(request: Request) {
         return {
           name: name.trim(),
           value: rest.join("=").trim(),
-          domain: host.split(":")[0], // Extract domain without port
+          domain: host.split(":")[0],
           path: "/",
         };
       });
       await page.setCookie(...cookies);
     }
     
-    // Navigate to the print page and wait for network to be idle
     await page.goto(printUrl, { waitUntil: "networkidle0" });
 
-    // Get the exact height of the content
-    const contentHeight = await page.evaluate(() => {
-      // Find the printable wrapper
-      const wrapper = document.querySelector('div.w-\\[58mm\\]') || document.body.firstElementChild;
-      return wrapper ? wrapper.getBoundingClientRect().height : document.documentElement.scrollHeight;
+    const height = await page.evaluate(() => {
+      return document.body.scrollHeight;
     });
 
-    // Generate PDF for 58mm thermal receipt printer
-    const pdfBuffer = await page.pdf({
-      width: "58mm",
-      height: `${contentHeight}px`,
-      printBackground: true,
-      margin: {
-        top: "0",
-        bottom: "0",
-        left: "0",
-        right: "0",
-      }
+    await page.setViewport({
+      width: 384, // 58mm thermal printer standard
+      height
+    });
+
+    const pngBuffer = await page.screenshot({
+      type: "png",
+      fullPage: true
     });
 
     await browser.close();
 
-    // Return the PDF as a stream
-    return new NextResponse(Buffer.from(pdfBuffer), {
+    return new NextResponse(Buffer.from(pngBuffer), {
       status: 200,
       headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="expense-voucher-${id}.pdf"`,
+        "Content-Type": "image/png",
+        "Content-Disposition": `attachment; filename="challan-${id}.png"`,
       },
     });
   } catch (error) {
-    console.error("Error generating PDF:", error);
-    return new NextResponse("Internal Server Error generating PDF", { status: 500 });
+    console.error("Error generating PNG:", error);
+    return new NextResponse("Internal Server Error generating PNG", { status: 500 });
   }
 }
