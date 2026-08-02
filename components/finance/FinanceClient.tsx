@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PrintableChallan } from "./PrintableChallan";
-import { PrintablePaymentReceipt } from "./PrintablePaymentReceipt";
 import { OverviewChart } from "@/components/dashboard/OverviewChart";
 import { cn, printImage } from "@/lib/utils";
 import { generateChallans, receivePayment, deleteChallan } from "@/app/actions";
@@ -46,7 +45,7 @@ type Payment = {
     institute?: { name: string } | null;
     route: { name: string } | null;
   };
-  challan: { month: string };
+  challan: { id: string; month: string };
 };
 
 const tabs = ["Overview", "Challans", "Payments"] as const;
@@ -75,6 +74,7 @@ export function FinanceClient({
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [pendingChallanId, setPendingChallanId] = useState<string | null>(null);
   const [printingChallanId, setPrintingChallanId] = useState<string | null>(null);
+  const [printingPaymentId, setPrintingPaymentId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const dialog = useAppDialog();
   const handlePrintChallan = async (challan: Challan) => {
@@ -88,10 +88,15 @@ export function FinanceClient({
     }
   };
 
-  const handlePrintReceipt = (payment: Payment) => {
+  const handlePrintReceipt = async (payment: Payment) => {
     setSelectedChallan(null);
     setSelectedPayment(payment);
-    setTimeout(() => window.print(), 100);
+    setPrintingPaymentId(payment.id);
+    try {
+      await printImage(`/api/print/challan?id=${payment.challan.id}`, `receipt-${payment.id}.png`);
+    } finally {
+      setPrintingPaymentId(null);
+    }
   };
 
   const handleDeleteChallan = async (challan: Challan) => {
@@ -600,8 +605,9 @@ export function FinanceClient({
                         <span className="text-[9px] bg-green-50 text-green-600 px-2 py-0.5 rounded-full font-semibold">
                           {payment.method || "Cash"}
                         </span>
-                        <Button variant="outline" size="sm" onClick={() => handlePrintReceipt(payment)} className="rounded-xl border-slate-300 text-xs font-bold h-8 gap-1.5 px-3 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 shadow-xs">
-                          <Printer className="w-3.5 h-3.5" /> Print Receipt
+                        <Button variant="outline" size="sm" onClick={() => handlePrintReceipt(payment)} disabled={printingPaymentId === payment.id} className="rounded-xl border-slate-300 text-xs font-bold h-8 gap-1.5 px-3 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 shadow-xs">
+                          {printingPaymentId === payment.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Printer className="w-3.5 h-3.5" />}
+                          {printingPaymentId === payment.id ? "Printing..." : "Print Receipt"}
                         </Button>
                       </div>
                     </div>
@@ -681,19 +687,6 @@ export function FinanceClient({
             status={selectedChallan.status}
             receiptNo={`CH-${selectedChallan.id.slice(-6).toUpperCase()}`}
           />
-        )}
-        {selectedPayment && (
-          <PrintablePaymentReceipt
-            studentName={selectedPayment.student.name}
-            fatherName={selectedPayment.student.fatherName || "—"}
-            studentClass={selectedPayment.student.class}
-            instituteName={selectedPayment.student.institute?.name || "General Campus"}
-            route={selectedPayment.student.route?.name || "N/A"}
-            month={selectedPayment.challan.month}
-            amountPaid={selectedPayment.amount}
-            date={new Date(selectedPayment.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-            method={selectedPayment.method || "Cash"}
-            receiptNo={`PAY-${selectedPayment.id.slice(-6).toUpperCase()}`}
           />
         )}
       </div>

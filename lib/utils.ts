@@ -15,14 +15,28 @@ export async function printImage(url: string, filename: string) {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
     if (isMobile) {
-      // Mobile: Force download. The OS will notify the user, and they can open it directly 
-      // in their RawBT thermal printer app which handles PNGs beautifully.
-      const a = document.createElement("a");
-      a.href = objectUrl;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      // Mobile: Attempt to use the Web Share API.
+      // This pauses the app correctly until the user returns from the intent (e.g., RawBT printer)
+      const file = new File([blob], filename, { type: "image/png" });
+      
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: "Print Receipt",
+          });
+        } catch (e) {
+          console.log("Share cancelled or failed", e);
+        }
+      } else {
+        // Fallback if Web Share API is unavailable
+        const a = document.createElement("a");
+        a.href = objectUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
       
       // Cleanup
       setTimeout(() => URL.revokeObjectURL(objectUrl), 10000);

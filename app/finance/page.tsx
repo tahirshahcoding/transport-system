@@ -27,7 +27,7 @@ export default async function FinancePage() {
     prisma.payment.findMany({
       include: {
         student: { select: { name: true, fatherName: true, class: true, institute: { select: { name: true } }, route: { select: { name: true } } } },
-        challan: { select: { month: true } },
+        challan: { select: { id: true, month: true } },
       },
       orderBy: { date: "desc" },
     }),
