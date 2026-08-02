@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { PrintableChallan } from "./PrintableChallan";
 import { PrintablePaymentReceipt } from "./PrintablePaymentReceipt";
 import { OverviewChart } from "@/components/dashboard/OverviewChart";
-import { cn } from "@/lib/utils";
+import { cn, printPdf } from "@/lib/utils";
 import { generateChallans, receivePayment, deleteChallan } from "@/app/actions";
 import { useAppDialog } from "@/components/ui/app-dialog";
 
@@ -79,7 +79,7 @@ export function FinanceClient({
   const handlePrintChallan = (challan: Challan) => {
     setSelectedPayment(null);
     setSelectedChallan(challan);
-    window.open(`/api/pdf/challan?id=${challan.id}`, '_blank');
+    printPdf(`/api/pdf/challan?id=${challan.id}`, `challan-${challan.id}.pdf`);
   };
 
   const handlePrintReceipt = (payment: Payment) => {
