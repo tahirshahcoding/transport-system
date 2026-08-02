@@ -10,29 +10,43 @@ export async function printPdf(url: string, filename: string) {
     const response = await fetch(url);
     if (!response.ok) throw new Error("Failed to fetch PDF");
     const blob = await response.blob();
-    const file = new File([blob], filename, { type: "application/pdf" });
+    const blobUrl = URL.createObjectURL(blob);
 
-    // Use native share on mobile devices which gives access to "Print" and "Share to Printer" apps
-    if (
-      navigator.share &&
-      navigator.canShare &&
-      navigator.canShare({ files: [file] })
-    ) {
-      await navigator.share({
-        files: [file],
-        title: filename,
-      });
-    } else {
-      // Fallback for desktop: open blob URL
-      const blobUrl = URL.createObjectURL(blob);
-      window.open(blobUrl, "_blank");
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      // Mobile: force a file download. This allows the OS to open it via native PDF viewers 
+      // or directly via Thermal Printer apps (like RawBT) which register as PDF handlers.
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
       
-      // Cleanup the object URL after a delay
+      // Cleanup
       setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+    } else {
+      // Desktop: use a hidden iframe to directly pop up the native print dialog
+      const iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      iframe.src = blobUrl;
+      document.body.appendChild(iframe);
+
+      iframe.onload = () => {
+        setTimeout(() => {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+          // Cleanup
+          setTimeout(() => {
+            URL.revokeObjectURL(blobUrl);
+            document.body.removeChild(iframe);
+          }, 30000);
+        }, 200);
+      };
     }
   } catch (error) {
     console.error("Error printing PDF:", error);
-    // Absolute fallback
     window.open(url, "_blank");
   }
 }

@@ -74,12 +74,18 @@ export function FinanceClient({
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [pendingChallanId, setPendingChallanId] = useState<string | null>(null);
+  const [printingChallanId, setPrintingChallanId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const dialog = useAppDialog();
-  const handlePrintChallan = (challan: Challan) => {
+  const handlePrintChallan = async (challan: Challan) => {
     setSelectedPayment(null);
     setSelectedChallan(challan);
-    printPdf(`/api/pdf/challan?id=${challan.id}`, `challan-${challan.id}.pdf`);
+    setPrintingChallanId(challan.id);
+    try {
+      await printPdf(`/api/pdf/challan?id=${challan.id}`, `challan-${challan.id}.pdf`);
+    } finally {
+      setPrintingChallanId(null);
+    }
   };
 
   const handlePrintReceipt = (payment: Payment) => {
@@ -509,8 +515,9 @@ export function FinanceClient({
                                 )}
                               </div>
                               <div className="flex gap-1.5 flex-wrap justify-end">
-                                <Button variant="outline" size="sm" onClick={() => handlePrintChallan(challan)} className="rounded-xl border-slate-300 text-xs font-bold h-8 gap-1.5 px-3 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 shadow-xs">
-                                  <Printer className="w-3.5 h-3.5" /> Print
+                                <Button variant="outline" size="sm" onClick={() => handlePrintChallan(challan)} disabled={printingChallanId === challan.id} className="rounded-xl border-slate-300 text-xs font-bold h-8 gap-1.5 px-3 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 shadow-xs">
+                                  {printingChallanId === challan.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Printer className="w-3.5 h-3.5" />}
+                                  {printingChallanId === challan.id ? "Printing..." : "Print"}
                                 </Button>
                                 {challan.status !== "PAID" && (
                                   <Button 

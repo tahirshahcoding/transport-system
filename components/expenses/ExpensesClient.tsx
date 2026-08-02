@@ -67,11 +67,17 @@ export function ExpensesClient({
   const [isOpen, setIsOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [pendingExpenseId, setPendingExpenseId] = useState<string | null>(null);
+  const [printingExpenseId, setPrintingExpenseId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const dialog = useAppDialog();
 
-  const handlePrint = (exp: Expense) => {
-    printPdf(`/api/pdf/expense?id=${exp.id}`, `expense-voucher-${exp.id}.pdf`);
+  const handlePrint = async (exp: Expense) => {
+    setPrintingExpenseId(exp.id);
+    try {
+      await printPdf(`/api/pdf/expense?id=${exp.id}`, `expense-voucher-${exp.id}.pdf`);
+    } finally {
+      setPrintingExpenseId(null);
+    }
   };
 
   const nowObj = new Date();
@@ -653,9 +659,11 @@ export function ExpensesClient({
                     <div className="flex items-center justify-end gap-1.5 mt-3 pt-2 border-t border-slate-100">
                       <button
                         onClick={() => handlePrint(exp)}
-                        className="text-[10px] font-semibold text-slate-700 hover:text-purple-600 bg-slate-50 hover:bg-purple-50 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1"
+                        disabled={printingExpenseId === exp.id}
+                        className="text-[10px] font-semibold text-slate-700 hover:text-purple-600 bg-slate-50 hover:bg-purple-50 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 disabled:opacity-50"
                       >
-                        <Printer className="w-3 h-3 text-purple-600" /> Print Voucher
+                        {printingExpenseId === exp.id ? <Loader2 className="w-3 h-3 text-purple-600 animate-spin" /> : <Printer className="w-3 h-3 text-purple-600" />}
+                        {printingExpenseId === exp.id ? "Printing..." : "Print Voucher"}
                       </button>
 
                       <button
