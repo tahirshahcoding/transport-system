@@ -7,69 +7,37 @@ export function cn(...inputs: ClassValue[]) {
 
 export async function printImage(url: string, filename: string) {
   try {
+    // 1. Fetch the image just to trigger our UI loading state and ensure it's generated
     const response = await fetch(url);
     if (!response.ok) throw new Error("Failed to fetch image");
-    const blob = await response.blob();
     
-    // Convert blob to Base64 Data URL to avoid ObjectURL memory/background crashing issues
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const dataUrl = reader.result as string;
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    // 2. Instead of using Blob/DataURLs or navigator.share (which backgrounds the PWA and causes freezes),
+    // we use a hidden iframe. Since the API returns Content-Disposition: attachment,
+    // the browser will natively download the file without unloading the PWA or launching an intent!
+    const iframe = document.createElement("iframe");
+    iframe.style.display = "none";
+    iframe.src = url;
+    document.body.appendChild(iframe);
 
-      if (isMobile) {
-        const file = new File([blob], filename, { type: "image/png" });
-        
-        const fallbackToDownload = () => {
-          const a = document.createElement("a");
-          a.href = dataUrl;
-          a.download = filename;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-        };
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          try {
-            navigator.share({
-              files: [file],
-              title: "Print Receipt",
-            }).catch(e => {
-              console.log("Share cancelled or failed", e);
-              // If share fails because the API took too long (losing the user gesture context), it throws NotAllowedError.
-              // AbortError is thrown if the user simply cancels the share sheet.
-              if (e instanceof Error && e.name === "NotAllowedError") {
-                fallbackToDownload();
-              }
-            });
-          } catch (e) {
-            console.log("Share synchronous error", e);
-            fallbackToDownload();
-          }
-        } else {
-          fallbackToDownload();
-        }
-      } else {
-        const iframe = document.createElement("iframe");
-        iframe.style.display = "none";
-        iframe.src = dataUrl;
-        document.body.appendChild(iframe);
+    if (!isMobile) {
+      // Desktop: Attempt to print the image directly
+      iframe.onload = () => {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+      };
+    }
 
-        iframe.onload = () => {
-          iframe.contentWindow?.focus();
-          iframe.contentWindow?.print();
-          // Remove iframe after printing dialog is closed
-          setTimeout(() => {
-            if (document.body.contains(iframe)) {
-              document.body.removeChild(iframe);
-            }
-          }, 5000);
-        };
+    // Cleanup iframe after a generous delay (15s) to ensure download starts
+    setTimeout(() => {
+      if (document.body.contains(iframe)) {
+        document.body.removeChild(iframe);
       }
-    };
-    reader.readAsDataURL(blob);
+    }, 15000);
+
   } catch (error) {
     console.error("Error printing image:", error);
-    window.open(url, "_blank");
+    window.location.href = url; // Absolute fallback
   }
 }
