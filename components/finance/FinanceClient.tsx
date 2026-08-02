@@ -687,7 +687,6 @@ export function FinanceClient({
             status={selectedChallan.status}
             receiptNo={`CH-${selectedChallan.id.slice(-6).toUpperCase()}`}
           />
-          />
         )}
       </div>
       {/* Generate Challans Month Selection Modal */}
