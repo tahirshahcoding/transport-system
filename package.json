@@ -12,6 +12,7 @@
     "@base-ui/react": "^1.6.0",
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
+    "@sparticuz/chromium-min": "^149.0.0",
     "better-auth": "^1.6.25",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -19,6 +20,7 @@
     "lucide-react": "^1.27.0",
     "next": "16.2.12",
     "pg": "^8.22.0",
+    "puppeteer-core": "^25.4.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "recharts": "^3.10.1",
@@ -35,6 +37,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
     "prisma": "^7.9.1",
+    "puppeteer": "^25.4.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

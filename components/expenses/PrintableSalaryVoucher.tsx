@@ -41,8 +41,6 @@ export const PrintableSalaryVoucher = forwardRef<HTMLDivElement, SalaryVoucherPr
       >
         {/* Brand Header */}
         <div className="text-center flex flex-col items-center mb-1">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Logo" className="w-10 h-10 object-contain mb-0.5" />
           <h1 className="font-extrabold text-sm tracking-tight text-black uppercase font-outfit">
             RAHIM TRAVEL
           </h1>

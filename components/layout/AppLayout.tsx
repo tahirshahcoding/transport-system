@@ -29,7 +29,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       setIsAuthenticated(hasSession);
       setIsChecking(false);
 
-      if (!hasSession && pathname !== "/login") {
+      if (!hasSession && pathname !== "/login" && !pathname.startsWith("/print/")) {
         router.replace("/login");
       } else if (hasSession && pathname === "/login") {
         router.replace("/");
@@ -43,8 +43,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     };
   }, [pathname, router]);
 
-  // If on login page, render login page directly without sidebar/nav
-  if (pathname === "/login") {
+  // If on login or print page, render directly without sidebar/nav
+  if (pathname === "/login" || pathname.startsWith("/print/")) {
     return <>{children}</>;
   }
 

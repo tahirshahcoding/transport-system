@@ -66,16 +66,12 @@ export function ExpensesClient({
 
   const [isOpen, setIsOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
-  const [selectedPrintExpense, setSelectedPrintExpense] = useState<Expense | null>(null);
   const [pendingExpenseId, setPendingExpenseId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const dialog = useAppDialog();
 
   const handlePrint = (exp: Expense) => {
-    setSelectedPrintExpense(exp);
-    setTimeout(() => {
-      window.print();
-    }, 100);
+    window.open(`/api/pdf/expense?id=${exp.id}`, '_blank');
   };
 
   const nowObj = new Date();
@@ -690,21 +686,6 @@ export function ExpensesClient({
         )}
       </div>
 
-      {/* Thermal Print Voucher Container */}
-      <div className="hidden print:block">
-        {selectedPrintExpense && (
-          <PrintableSalaryVoucher
-            title={selectedPrintExpense.title}
-            category={selectedPrintExpense.category}
-            amount={selectedPrintExpense.amount}
-            month={selectedPrintExpense.month}
-            date={new Date(selectedPrintExpense.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-            vehicleNumber={selectedPrintExpense.vehicle?.registrationNumber}
-            notes={selectedPrintExpense.notes || undefined}
-            voucherNo={`VCH-${selectedPrintExpense.id.slice(-6).toUpperCase()}`}
-          />
-        )}
-      </div>
     </>
   );
 }

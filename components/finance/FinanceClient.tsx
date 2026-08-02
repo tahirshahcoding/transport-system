@@ -79,7 +79,7 @@ export function FinanceClient({
   const handlePrintChallan = (challan: Challan) => {
     setSelectedPayment(null);
     setSelectedChallan(challan);
-    setTimeout(() => window.print(), 100);
+    window.open(`/api/pdf/challan?id=${challan.id}`, '_blank');
   };
 
   const handlePrintReceipt = (payment: Payment) => {

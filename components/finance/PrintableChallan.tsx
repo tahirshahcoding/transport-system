@@ -57,8 +57,6 @@ export const PrintableChallan = forwardRef<HTMLDivElement, ChallanProps>(
       >
         {/* Brand Header */}
         <div className="text-center flex flex-col items-center mb-1">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Logo" className="w-10 h-10 object-contain mb-0.5" />
           <h1 className="font-extrabold text-sm tracking-tight text-black uppercase font-outfit">
             RAHIM TRAVEL
           </h1>
@@ -153,10 +151,6 @@ export const PrintableChallan = forwardRef<HTMLDivElement, ChallanProps>(
           </div>
           <ol className="list-decimal list-inside text-[7.5px] leading-tight space-y-0.5 font-medium">
             <li>Fee must be paid before 4th of every month.</li>
-            <li>No late payment accepted after 4th.</li>
-            <li>Show receipt to driver/staff when asked.</li>
-            <li>This receipt is non-transferable.</li>
-            <li>Keep receipt safe for verification.</li>
           </ol>
         </div>
 
