@@ -21,12 +21,14 @@ export async function printImage(url: string, filename: string) {
       
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
-          await navigator.share({
+          // Fire and forget: do NOT await navigator.share. 
+          // Some Android WebViews fail to resolve the promise when returning to the app, causing a "hang"
+          navigator.share({
             files: [file],
             title: "Print Receipt",
-          });
+          }).catch(e => console.log("Share cancelled or failed", e));
         } catch (e) {
-          console.log("Share cancelled or failed", e);
+          console.log("Share synchronous error", e);
         }
       } else {
         // Fallback if Web Share API is unavailable
