@@ -71,13 +71,8 @@ export function ExpensesClient({
   const [isPending, startTransition] = useTransition();
   const dialog = useAppDialog();
 
-  const handlePrint = async (exp: Expense) => {
-    setPrintingExpenseId(exp.id);
-    try {
-      await printImage(`/api/print/expense?id=${exp.id}`, `expense-voucher-${exp.id}.png`);
-    } finally {
-      setPrintingExpenseId(null);
-    }
+  const handlePrint = (exp: Expense) => {
+    window.open(`/api/print/expense?id=${exp.id}`, "_blank");
   };
 
   const nowObj = new Date();

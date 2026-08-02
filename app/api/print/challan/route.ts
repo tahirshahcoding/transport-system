@@ -72,7 +72,7 @@ export async function GET(request: Request) {
       status: 200,
       headers: {
         "Content-Type": "image/png",
-        "Content-Disposition": `attachment; filename="challan-${id}.png"`,
+        "Content-Disposition": `inline; filename="challan-${id}.png"`,
       },
     });
   } catch (error) {

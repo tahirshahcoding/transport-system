@@ -77,26 +77,16 @@ export function FinanceClient({
   const [printingPaymentId, setPrintingPaymentId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const dialog = useAppDialog();
-  const handlePrintChallan = async (challan: Challan) => {
+  const handlePrintChallan = (challan: Challan) => {
     setSelectedPayment(null);
     setSelectedChallan(challan);
-    setPrintingChallanId(challan.id);
-    try {
-      await printImage(`/api/print/challan?id=${challan.id}`, `challan-${challan.id}.png`);
-    } finally {
-      setPrintingChallanId(null);
-    }
+    window.open(`/api/print/challan?id=${challan.id}`, "_blank");
   };
 
-  const handlePrintReceipt = async (payment: Payment) => {
+  const handlePrintReceipt = (payment: Payment) => {
     setSelectedChallan(null);
     setSelectedPayment(payment);
-    setPrintingPaymentId(payment.id);
-    try {
-      await printImage(`/api/print/challan?id=${payment.challan.id}`, `receipt-${payment.id}.png`);
-    } finally {
-      setPrintingPaymentId(null);
-    }
+    window.open(`/api/print/challan?id=${payment.challan.id}`, "_blank");
   };
 
   const handleDeleteChallan = async (challan: Challan) => {
@@ -520,9 +510,8 @@ export function FinanceClient({
                                 )}
                               </div>
                               <div className="flex gap-1.5 flex-wrap justify-end">
-                                <Button variant="outline" size="sm" onClick={() => handlePrintChallan(challan)} disabled={printingChallanId === challan.id} className="rounded-xl border-slate-300 text-xs font-bold h-8 gap-1.5 px-3 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 shadow-xs">
-                                  {printingChallanId === challan.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Printer className="w-3.5 h-3.5" />}
-                                  {printingChallanId === challan.id ? "Printing..." : "Print"}
+                                <Button variant="outline" size="sm" onClick={() => handlePrintChallan(challan)} className="rounded-xl border-slate-300 text-xs font-bold h-8 gap-1.5 px-3 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 shadow-xs">
+                                  <Printer className="w-3.5 h-3.5" /> Print
                                 </Button>
                                 {challan.status !== "PAID" && (
                                   <Button 
@@ -605,9 +594,8 @@ export function FinanceClient({
                         <span className="text-[9px] bg-green-50 text-green-600 px-2 py-0.5 rounded-full font-semibold">
                           {payment.method || "Cash"}
                         </span>
-                        <Button variant="outline" size="sm" onClick={() => handlePrintReceipt(payment)} disabled={printingPaymentId === payment.id} className="rounded-xl border-slate-300 text-xs font-bold h-8 gap-1.5 px-3 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 shadow-xs">
-                          {printingPaymentId === payment.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Printer className="w-3.5 h-3.5" />}
-                          {printingPaymentId === payment.id ? "Printing..." : "Print Receipt"}
+                        <Button variant="outline" size="sm" onClick={() => handlePrintReceipt(payment)} className="rounded-xl border-slate-300 text-xs font-bold h-8 gap-1.5 px-3 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 shadow-xs">
+                          <Printer className="w-3.5 h-3.5" /> Print Receipt
                         </Button>
                       </div>
                     </div>
