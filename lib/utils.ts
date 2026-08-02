@@ -19,22 +19,35 @@ export async function printImage(url: string, filename: string) {
 
       if (isMobile) {
         const file = new File([blob], filename, { type: "image/png" });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          try {
-            navigator.share({
-              files: [file],
-              title: "Print Receipt",
-            }).catch(e => console.log("Share cancelled or failed", e));
-          } catch (e) {
-            console.log("Share synchronous error", e);
-          }
-        } else {
+        
+        const fallbackToDownload = () => {
           const a = document.createElement("a");
           a.href = dataUrl;
           a.download = filename;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
+        };
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            navigator.share({
+              files: [file],
+              title: "Print Receipt",
+            }).catch(e => {
+              console.log("Share cancelled or failed", e);
+              // If share fails because the API took too long (losing the user gesture context), it throws NotAllowedError.
+              // AbortError is thrown if the user simply cancels the share sheet.
+              if (e instanceof Error && e.name === "NotAllowedError") {
+                fallbackToDownload();
+              }
+            });
+          } catch (e) {
+            console.log("Share synchronous error", e);
+            fallbackToDownload();
+          }
+        } else {
+          fallbackToDownload();
         }
       } else {
         const iframe = document.createElement("iframe");
